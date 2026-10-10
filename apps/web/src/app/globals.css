@@ -299,6 +299,134 @@ a {
   font-weight: 600;
 }
 
+.player-hud {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(20, 184, 166, 0.08));
+}
+
+.hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hud-header h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+}
+
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--primary-strong);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.xp-meter {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.xp-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #34d399, #60a5fa);
+  transition: width 0.25s ease;
+}
+
+.hud-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.achievement-list {
+  display: grid;
+  gap: 10px;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.achievement-item.empty {
+  opacity: 0.8;
+}
+
+.achievement-item strong {
+  display: block;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.achievement-item small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.achievement-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.16);
+  color: #15803d;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.achievement-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 30;
+  display: grid;
+  gap: 4px;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+}
+
+.achievement-toast strong {
+  color: #f8fafc;
+  font-size: 0.9rem;
+}
+
+.achievement-toast span {
+  color: #cbd5e1;
+  font-size: 0.76rem;
+}
+
 .status-dot {
   width: 10px;
   height: 10px;
