@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LessonStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model User {
+  id        String       @id @default(cuid())
+  email     String?      @unique
+  name      String?
+  avatarUrl String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  progress  Progress[]
+  achievements Achievement[]
+}
+
+model Floor {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  title            String
+  order            Int      @default(0)
+  theme            String   @default("devops")
+  unlockRequirement String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  rooms            Room[]
+}
+
+model Room {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  floorId     String
+  title       String
+  description String?
+  positionX   Float    @default(0)
+  positionZ   Float    @default(0)
+  floorColor  String   @default("#1fa88a")
+  prerequisites String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  floor       Floor    @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id                String     @id @default(cuid())
+  slug              String     @unique
+  roomId            String
+  title             String
+  order             Int        @default(0)
+  estimatedMinutes  Int        @default(10)
+  xp                Int        @default(25)
+  content           String     @default("")
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  room              Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  questions         Question[]
+  progress          Progress[]
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  lessonId    String
+  prompt      String
+  options     String[]
+  correctIndex Int      @default(0)
+  explanation String?
+  xp          Int      @default(10)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model Progress {
+  id          String       @id @default(cuid())
+  userId      String
+  lessonId    String
+  status      LessonStatus @default(NOT_STARTED)
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  slug        String   @unique
+  title       String
+  description String?
+  unlockedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
