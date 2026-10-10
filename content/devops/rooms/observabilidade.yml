@@ -1,0 +1,98 @@
+slug: observabilidade
+floorSlug: devops
+title: Observabilidade
+description: Logs, métricas, tracing e saúde dos sistemas em produção.
+position: { x: 4, z: 3 }
+floorColor: '#f97316'
+prerequisites: [docker, kubernetes]
+lessons:
+  - slug: lesson-01-logs-metricas-e-tracing
+    title: Logs, métricas e tracing
+    order: 1
+    estimatedMinutes: 9
+    xp: 30
+    content: |
+      Observabilidade reúne logs, métricas e tracing para responder: o sistema está funcionando, por que falhou e onde está o gargalo.
+      Essas três perspectivas permitem diagnóstico rápido em ambientes complexos e distribuídos.
+  - slug: lesson-02-slo-sli-e-alertas
+    title: SLO, SLI e alertas
+    order: 2
+    estimatedMinutes: 10
+    xp: 35
+    content: |
+      SLI mede um comportamento útil do sistema, enquanto SLO define um objetivo de nível de serviço. Alertas ajudam a reagir antes que o usuário perceba a falha.
+      TODO(revisar): confirmar se as metas de SLO no projeto devem ser genéricas ou específicas por serviço.
+  - slug: lesson-03-dashboard-e-investigacao
+    title: Dashboards e investigação
+    order: 3
+    estimatedMinutes: 8
+    xp: 30
+    content: |
+      Dashboards consolidam sinais de saúde em um único ponto de visão. A investigação começa com correlação entre tempo, contexto e erro para identificar a origem real do problema.
+  - slug: lesson-04-otel-e-correlation
+    title: OpenTelemetry e correlação
+    order: 4
+    estimatedMinutes: 10
+    xp: 35
+    content: |
+      OpenTelemetry padroniza coleta de métricas, logs e traces em vários serviços, facilitando a correlação entre eventos e chamadas.
+      Essa padronização ajuda a reduzir ruído e a melhorar a clareza da operação do ambiente.
+quiz:
+  slug: quiz-observabilidade
+  title: Quiz de Observabilidade
+  questions:
+    - prompt: Qual é o principal objetivo da observabilidade?
+      options:
+        - Esconder falhas da equipe
+        - Entender o estado interno de sistemas complexos
+        - Reduzir a necessidade de testes
+        - Substituir banco de dados
+        - Gerenciar build de dependências
+      correctIndex: 1
+      explanation: Observabilidade ajuda a responder o que está acontecendo e por que as coisas falham, mesmo em sistemas distribuídos.
+      xp: 10
+    - prompt: O que diferencia um SLI de um SLO?
+      options:
+        - SLI é a medida; SLO é o objetivo aceitável
+        - SLO é a ferramenta; SLI é o alerta
+        - SLI é a infraestrutura; SLO é o deploy
+        - Não há diferença entre os dois
+        - SLI é um tipo de log
+      correctIndex: 0
+      explanation: SLI mede o serviço; SLO define a meta de qualidade que o time deseja atingir.
+      xp: 10
+    - prompt: Qual sinal é mais útil para encontrar gargalos de performance?
+      options:
+        - Métricas e traces
+        - Arquivos de imagem
+        - Dados do Git
+        - Branches remotas
+        - Alterações de CSS
+      correctIndex: 0
+      explanation: Métricas e traces revelam uso de recursos, latência e caminhos críticos do sistema.
+      xp: 10
+    - prompt: Por que logs isolados nem sempre bastam?
+      options:
+        - Porque logs não têm contexto temporal suficiente
+        - Porque logs nunca são relevantes
+        - Porque logs são criptografados por padrão
+        - Porque logs não podem ser coletados
+        - Porque logs substituem métricas
+      correctIndex: 0
+      explanation: Um log isolado pode não mostrar a causa real; contexto, traces e métricas ajudam a correlacionar eventos.
+      xp: 10
+    - prompt: Qual tecnologia é conhecida por padronizar coleta de telemetria?
+      options:
+        - OpenTelemetry
+        - Docker Compose
+        - Terraform
+        - GitHub Pages
+        - Helm sem chart
+      correctIndex: 0
+      explanation: OpenTelemetry padroniza a coleta e correlação de logs, métricas e traces em vários serviços.
+      xp: 10
+exercise:
+  title: Exercício prático — levantar painel de saúde
+  templateUrl: https://github.com/mundo-devops/template-observabilidade
+  instructions: |
+    Configure um painel simples com métricas de requisições e latência e crie um alerta para picos de erro ou disponibilidade abaixo do objetivo.

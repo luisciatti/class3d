@@ -1,3 +1,5 @@
+import { readFileSync, readdirSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ContentDocumentSchema, parseLessonMarkdown } from './content.js';
 
@@ -69,6 +71,30 @@ describe('content schema validation', () => {
       floor: { slug: 'devops' },
       rooms: [{ slug: 'ci-cd' }],
     });
+  });
+
+  it('defines the complete DevOps room catalog in content files', () => {
+    const roomsDir = path.resolve(import.meta.dirname, '../../../content/devops/rooms');
+    const roomFiles = readdirSync(roomsDir)
+      .filter((file) => file.endsWith('.yml'))
+      .sort();
+
+    expect(roomFiles).toEqual([
+      'ci-cd.yml',
+      'docker.yml',
+      'git.yml',
+      'kubernetes.yml',
+      'observabilidade.yml',
+    ]);
+
+    const roomSlugs = roomFiles.map((file) => file.replace(/\.yml$/, ''));
+    expect(roomSlugs).toEqual(['ci-cd', 'docker', 'git', 'kubernetes', 'observabilidade']);
+
+    const kubernetesFile = readFileSync(path.join(roomsDir, 'kubernetes.yml'), 'utf8');
+    const observabilidadeFile = readFileSync(path.join(roomsDir, 'observabilidade.yml'), 'utf8');
+
+    expect(kubernetesFile).toContain('prerequisites: [docker]');
+    expect(observabilidadeFile).toContain('prerequisites: [docker, kubernetes]');
   });
 
   it('rejects a room whose prerequisite is not declared', () => {

@@ -2,7 +2,7 @@ slug: git
 floorSlug: devops
 title: Git
 description: Controle de versão e trabalho em equipe.
-position: { x: -4, z: 2 }
+position: { x: -5, z: -2 }
 floorColor: '#4f46e5'
 prerequisites: []
 lessons:
@@ -13,13 +13,23 @@ lessons:
     xp: 25
     content: |
       Git registra alterações em um histórico, permitindo colaboração, revisão e rollback.
+      Cada commit representa um ponto de segurança no desenvolvimento e facilita a recuperação de versões anteriores.
   - slug: lesson-02-branches-e-merge
     title: Branches e merge
     order: 2
     estimatedMinutes: 10
     xp: 30
     content: |
-      Branches isolam mudanças, enquanto merge integra o trabalho em um ponto comum.
+      Branches isolam mudanças em um contexto paralelo, enquanto merge integra o trabalho em um ponto comum.
+      Fluxos como "feature -> develop -> main" ajudam a reduzir conflitos e a manter a entrega previsível.
+  - slug: lesson-03-rebase-e-pr
+    title: Rebase e pull request
+    order: 3
+    estimatedMinutes: 9
+    xp: 30
+    content: |
+      Rebase permite reescrever a base de trabalho em cima de mudanças recentes, e pull requests tornam a revisão mais visível para a equipe.
+      TODO(revisar): confirmar o standard de rebase versus merge em repos com branch protection.
 quiz:
   slug: quiz-git
   title: Quiz de Git
@@ -29,6 +39,53 @@ quiz:
         - Manter um ambiente de produção
         - Isolar mudanças em um contexto paralelo
         - Copiar imagens Docker
+        - Escrever logs em disco
+        - Reduzir a latência da API
       correctIndex: 1
       explanation: Branches permitem evoluir o código separadamente sem afetar o fluxo principal.
       xp: 10
+    - prompt: Qual comando normalmente registra um conjunto de alterações no histórico?
+      options:
+        - git pull
+        - git merge
+        - git commit
+        - git reset
+        - git clone
+      correctIndex: 2
+      explanation: O commit cria um snapshot do estado atual do repositório e registra a mudança no histórico.
+      xp: 10
+    - prompt: O que é um pull request?
+      options:
+        - Um comando para excluir branches
+        - Uma revisão formal de mudanças antes de integrar
+        - Um processo de deploy automático
+        - Um arquivo de configuração do Git
+        - Um tipo de token de API
+      correctIndex: 1
+      explanation: Pull requests facilitam revisão, discussão e validação antes da integração final.
+      xp: 10
+    - prompt: Quando usar merge em vez de rebase?
+      options:
+        - Quando a equipe precisa preservar o histórico de integração de forma explícita
+        - Quando a branch deve ser excluída imediatamente
+        - Quando o objetivo é remover commits antigos
+        - Quando queremos trocar de senha do repositório
+        - Quando houver apenas um commit no projeto
+      correctIndex: 0
+      explanation: Merge preserva a linha de evolução do ramo e deixa a integração explícita para quem revisa.
+      xp: 10
+    - prompt: Qual benefício principal do Git em times de desenvolvimento?
+      options:
+        - Garantir deploy sem testes
+        - Permitir rastreio e colaboração em mudanças
+        - Substituir bancos de dados
+        - Realizar build automático em produção
+        - Criar imagens Docker
+      correctIndex: 1
+      explanation: Git organiza histórico, colaboração e reversão de mudanças em ambientes compartilhados.
+      xp: 10
+exercise:
+  title: Exercício prático — fluxo de feature em Git
+  templateUrl: https://github.com/mundo-devops/template-git-flow
+  instructions: |
+    Crie uma branch de feature, altere um arquivo de documentação, faça commits claros e abra um pull request com resumo do impacto.

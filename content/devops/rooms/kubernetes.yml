@@ -1,0 +1,99 @@
+slug: kubernetes
+floorSlug: devops
+title: Kubernetes
+description: Orquestração e escalabilidade de serviços em produção.
+position: { x: -3, z: 3 }
+floorColor: '#0ea5e9'
+prerequisites: [docker]
+lessons:
+  - slug: lesson-01-kubernetes-basico
+    title: Kubernetes básico
+    order: 1
+    estimatedMinutes: 8
+    xp: 30
+    content: |
+      Kubernetes organiza containers em pods, serviços e deployments para manter aplicações disponíveis e escaláveis.
+      O cluster abstrai a execução sob demanda e facilita o auto-reparo e o balanceamento de carga.
+  - slug: lesson-02-pods-e-services
+    title: Pods e Services
+    order: 2
+    estimatedMinutes: 9
+    xp: 30
+    content: |
+      Pods agrupam containers que compartilham rede e armazenamento, enquanto Services expõem e descobrem esses pods dentro do cluster.
+      Essa separação ajuda a evoluir a arquitetura sem depender do endereço fixo de uma instância.
+  - slug: lesson-03-deployments-e-escalabilidade
+    title: Deployments e escalabilidade
+    order: 3
+    estimatedMinutes: 10
+    xp: 35
+    content: |
+      Deployments descrevem o estado desejado da aplicação e permitem atualizar versões, fazer rollbacks e escalar replicas.
+      TODO(revisar): confirmar se a prática do projeto usa HPA ou apenas escalonamento manual em exemplos introdutórios.
+  - slug: lesson-04-helm-e-configmaps
+    title: Helm e ConfigMaps
+    order: 4
+    estimatedMinutes: 10
+    xp: 35
+    content: |
+      Helm empacota manifests em releases reutilizáveis, enquanto ConfigMaps e Secrets externalizam configuração e dados sensíveis.
+      Isso reduz duplicação de manifests e melhora a operação em ambientes distintos.
+quiz:
+  slug: quiz-kubernetes
+  title: Quiz de Kubernetes
+  questions:
+    - prompt: O que é um pod no Kubernetes?
+      options:
+        - Um grupo de containers executando juntos em um mesmo contexto
+        - Um ambiente de produção isolado
+        - Uma rede privada de cluster
+        - Um tipo de workload em banco de dados
+        - Um evento de deploy
+      correctIndex: 0
+      explanation: Pods são a menor unidade de execução normalmente usada para agrupar containers que cooperam.
+      xp: 10
+    - prompt: Qual é o papel principal de um Service?
+      options:
+        - Expor e discoverar pods por meio de um endpoint estável
+        - Executar backups de dados
+        - Definir regras de firewall
+        - Armazenar imagens Docker
+        - Criar namespaces automaticamente
+      correctIndex: 0
+      explanation: Services provêem descoberta estável e roteamento para pods que podem mudar de endereço.
+      xp: 10
+    - prompt: O que um Deployment controla?
+      options:
+        - Só logs de aplicação
+        - O estado desejado e as versões da aplicação
+        - O acesso ao cluster pela rede local
+        - O GitHub Actions do repositório
+        - O ciclo de backups do banco
+      correctIndex: 1
+      explanation: Deployment define a quantidade de replicas e regras de atualização do aplicativo.
+      xp: 10
+    - prompt: Por que ConfigMaps são úteis?
+      options:
+        - Para evitar mudanças em código
+        - Para separar configuração da imagem e facilitar variação por ambiente
+        - Para expor portas do host
+        - Para criar load balancers externos
+        - Para substituir o Git
+      correctIndex: 1
+      explanation: ConfigMaps tornam a configuração reutilizável e adaptável às necessidades de cada ambiente.
+      xp: 10
+    - prompt: Qual benefício de orquestrar containers com Kubernetes?
+      options:
+        - Reduzir o controle de deploy no ambiente
+        - Aumentar resiliência e escalar serviços de forma automatizada
+        - Eliminar a necessidade de observabilidade
+        - Trocar todas as dependências por imagens locais
+        - Substituir testes de integração
+      correctIndex: 1
+      explanation: Kubernetes melhora disponibilidade, resiliência e escalabilidade de workloads distribuídos.
+      xp: 10
+exercise:
+  title: Exercício prático — criar deployment e service
+  templateUrl: https://github.com/mundo-devops/template-kubernetes
+  instructions: |
+    Escreva manifests para Deployment, Service e ConfigMap, depois valide a aplicação em um cluster local com um comando de port-forward.

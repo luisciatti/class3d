@@ -2,7 +2,7 @@ slug: docker
 floorSlug: devops
 title: Docker
 description: Empacotar aplicações em containers reprodutíveis.
-position: { x: -1, z: -5 }
+position: { x: 5, z: -2 }
 floorColor: '#f59e0b'
 prerequisites: [git]
 lessons:
@@ -13,6 +13,7 @@ lessons:
     xp: 30
     content: |
       Containers agrupam aplicação, dependências e runtime em um ambiente previsível.
+      Uma imagem Docker descreve a base, os arquivos do app e os comandos necessários para iniciar o serviço.
   - slug: lesson-02-docker-compose
     title: Docker Compose
     order: 2
@@ -20,6 +21,15 @@ lessons:
     xp: 35
     content: |
       Compose define serviços, redes e volumes para subir a stack local de forma declarativa.
+      Isso permite reproduzir ambiente de desenvolvimento e testes com menos esforço e menos drift entre máquinas.
+  - slug: lesson-03-optimizing-builds
+    title: Otimizando builds e imagens
+    order: 3
+    estimatedMinutes: 8
+    xp: 30
+    content: |
+      Build eficiente reduz custo, tempo de entrega e ataque de superfície. Camadas bem organizadas, uso de imagens menores e cache ajudam a manter o processo ágil.
+      TODO(revisar): ajustar exemplos para a imagem base escolhida pelo projeto e estratégia de multi-stage.
 quiz:
   slug: quiz-docker
   title: Quiz de Docker
@@ -29,6 +39,53 @@ quiz:
         - Um ambiente isolado e reproducível
         - Um banco de dados distribuído
         - A própria rede pública
+        - Um serviço de autenticação externo
+        - Um orquestrador de filas
       correctIndex: 0
       explanation: Containers empacotam a aplicação e suas dependências em um ambiente isolado e previsível.
       xp: 10
+    - prompt: Qual é a principal finalidade de uma imagem Docker?
+      options:
+        - Armazenar logs do host
+        - Definir o estado inicial do container
+        - Substituir a rede local
+        - Gerenciar usuários do SO
+        - Realizar consultas SQL
+      correctIndex: 1
+      explanation: A imagem define como o container deve iniciar e quais artefatos e dependências ele precisa.
+      xp: 10
+    - prompt: O que o Docker Compose facilita?
+      options:
+        - Gerenciar fila de mensagens sem rede
+        - Definir vários serviços em um único arquivo declarativo
+        - Criar commit em repositório remoto
+        - Instalar dependências de Node globalmente
+        - Excluir imagens antigas de forma segura
+      correctIndex: 1
+      explanation: Compose organiza a execução de múltiplos serviços e suas redes e volumes em um ambiente local.
+      xp: 10
+    - prompt: Por que imagens menores geralmente são melhores?
+      options:
+        - Porque reduzem espaço e tempo de deploy
+        - Porque evitam qualquer dependência do sistema
+        - Porque substituem completamente o Git
+        - Porque removem a necessidade de testes
+        - Porque não requerem internet
+      correctIndex: 0
+      explanation: Imagens enxutas tendem a reduzir custo, velocidade de distribuição e área de ataque.
+      xp: 10
+    - prompt: Qual situação é um bom uso de container?
+      options:
+        - Quando você precisa executar o mesmo serviço em ambientes parecidos
+        - Quando o código deve rodar somente em uma máquina específica
+        - Quando não há qualquer dependência externa
+        - Quando não existem testes automatizados
+        - Quando é necessário abrir portas físicas do host
+      correctIndex: 0
+      explanation: Containers ajudam a manter comportamento consistente em ambientes de desenvolvimento, teste e produção.
+      xp: 10
+exercise:
+  title: Exercício prático — empacotar uma aplicação com Docker
+  templateUrl: https://github.com/mundo-devops/template-docker-app
+  instructions: |
+    Escreva um Dockerfile para uma aplicação web simples, defina um compose com serviço de app e banco e valide que o build funciona localmente.
