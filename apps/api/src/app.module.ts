@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { z } from 'zod';
+import { ContentController } from './content/content.controller';
+import { ContentService } from './content/content.service';
 import { HealthController } from './health.controller';
 import { PrismaService } from './prisma/prisma.service';
 
@@ -39,8 +41,8 @@ const envSchema = z.object({
       },
     ]),
   ],
-  controllers: [HealthController],
-  providers: [PrismaService],
-  exports: [PrismaService],
+  controllers: [HealthController, ContentController],
+  providers: [PrismaService, ContentService],
+  exports: [PrismaService, ContentService],
 })
 export class AppModule {}
