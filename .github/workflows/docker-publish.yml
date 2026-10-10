@@ -50,7 +50,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
 
       - name: Build e push (amd64 + arm64)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: infra/docker/${{ matrix.service }}.Dockerfile
