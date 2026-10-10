@@ -13,33 +13,36 @@ Exemplo: Andar **DevOps** → salas **CI/CD**, **Docker**, **Git**, **Kubernetes
 O usuário controla um avatar que anda pelo andar, entra em uma sala, e ali abre aulas, faz quizzes e exercícios. Ao concluir, ganha XP e conquistas e desbloqueia novas salas e andares.
 
 ### Referência visual
+
 Estilo de escritório **isométrico low-poly**: câmera em ângulo fixo de cima, salas delimitadas por paredes baixas, **pisos coloridos por sala** (verde-água, roxo etc.), mesas, plantas, estantes, sofás, personagens pequenos e estilizados. Cada sala tem uma **placa flutuante** (billboard) com o nome do tópico e o status (ex.: "CI/CD — 2/5 aulas"). Iluminação suave com sombras. Deve rodar bem em notebooks comuns e em celulares.
 
 ### Objetivos do produto
+
 1. Aprender de forma prática e divertida, com progresso visível no espaço 3D.
 2. Conteúdo **versionado como código** (Markdown/MDX + YAML no repositório), revisado via Pull Request.
 3. Projeto também serve como **portfólio de DevOps**: pipeline de CI/CD completo, containers, segurança e observabilidade desde o começo.
 
 ### Fora do escopo (por enquanto)
+
 Multiplayer em tempo real, chat, pagamentos, app nativo, editor de código dentro do jogo, geração de conteúdo por IA em runtime. Não implemente nada disso sem pedido explícito.
 
 ## 2. Stack (decidida)
 
-| Camada | Tecnologia |
-|---|---|
-| Monorepo | pnpm workspaces + Turborepo |
-| Front-end | Next.js (App Router) + TypeScript strict |
-| 3D | Three.js via **React Three Fiber** + `@react-three/drei` |
-| Estado / dados | Zustand (estado do jogo), TanStack Query (API) |
-| Back-end | NestJS + TypeScript, REST versionado (`/v1`), OpenAPI |
-| Banco | PostgreSQL + Prisma |
-| Cache | Redis |
-| Validação / contratos | zod em `packages/shared` |
-| Auth | OAuth GitHub/Google + JWT (access curto + refresh) |
-| Testes | Vitest/Jest (unit), Supertest (API), Playwright (e2e) |
-| Containers | Docker multi-stage, docker compose, registry GHCR |
-| CI/CD | GitHub Actions |
-| IaC (fase final) | Terraform |
+| Camada                | Tecnologia                                               |
+| --------------------- | -------------------------------------------------------- |
+| Monorepo              | pnpm workspaces + Turborepo                              |
+| Front-end             | Next.js (App Router) + TypeScript strict                 |
+| 3D                    | Three.js via **React Three Fiber** + `@react-three/drei` |
+| Estado / dados        | Zustand (estado do jogo), TanStack Query (API)           |
+| Back-end              | NestJS + TypeScript, REST versionado (`/v1`), OpenAPI    |
+| Banco                 | PostgreSQL + Prisma                                      |
+| Cache                 | Redis                                                    |
+| Validação / contratos | zod em `packages/shared`                                 |
+| Auth                  | OAuth GitHub/Google + JWT (access curto + refresh)       |
+| Testes                | Vitest/Jest (unit), Supertest (API), Playwright (e2e)    |
+| Containers            | Docker multi-stage, docker compose, registry GHCR        |
+| CI/CD                 | GitHub Actions                                           |
+| IaC (fase final)      | Terraform                                                |
 
 Não troque nem adicione bibliotecas grandes sem justificar em um ADR (`docs/adr/`).
 
@@ -68,13 +71,14 @@ docs/           arquitetura, ADRs, backlog
 **Fonte de verdade do conteúdo = pasta `content/`.** Um comando (`pnpm content:sync`) valida e importa o conteúdo para o banco. O banco guarda usuário e progresso; o conteúdo vem dos arquivos.
 
 ### Exemplo de `room.yml`
+
 ```yaml
 slug: ci-cd
 floor: devops
 title: CI/CD
 description: Automatize build, teste e deploy com pipelines.
 position: { x: 4, z: -2 }
-floorColor: "#1fa88a"
+floorColor: '#1fa88a'
 prerequisites: [git]
 lessons:
   - lesson-01-o-que-e-ci-cd
@@ -118,6 +122,7 @@ pnpm docker:up      # stack completa em containers (web, api, postgres, redis)
 ## 8. Definição de pronto (Definition of Done)
 
 Uma tarefa só está pronta quando:
+
 1. Todos os **critérios de aceite** da tarefa em `docs/BACKLOG.md` foram atendidos.
 2. `pnpm lint`, `pnpm typecheck`, `pnpm test` e `pnpm build` passam.
 3. Há testes para a lógica nova.
@@ -135,3 +140,14 @@ Uma tarefa só está pronta quando:
 - Não instale dependências sem dizer quais e por quê.
 - Não desative testes, lint ou checks do CI para "fazer passar".
 - Não invente fatos de conteúdo educacional: se não tiver certeza de um dado técnico nas aulas, sinalize com `TODO(revisar)`.
+
+<!-- BEGIN:turborepo-agent-rules -->
+
+# This is NOT the Turborepo you know
+
+Turborepo configuration, task behavior, and CLI commands can vary between installed versions and may differ from your training data. Resolve the `turbo` package from this file's directory or relevant workspace; in monorepos, it may not be visible from the repository root. For example, run `node -p "require.resolve('turbo/package.json')"` from a workspace that depends on `turbo`.
+
+Read `docs/README.md` inside that installed package first, then read the relevant pages from its `docs/` directory before changing Turborepo configuration or commands. Heed deprecation notices. These bundled docs match the installed package version and are available without network access.
+
+This block is written and re-added by `turbo` before repository-scoped commands when an AI agent is detected. In the Turborepo source repository, its template is defined in `crates/turborepo-cli/src/cli/agent_guidance.rs`. Removing the managed block while updates are enabled means a later qualifying invocation will add it again. Set `"agentGuidance": false` in the root `turbo.json` or `turbo.jsonc` to opt out; this does not remove an existing block. Keep the block committed with your work to avoid an uncommitted change on the next agent invocation.
+<!-- END:turborepo-agent-rules -->
