@@ -8,6 +8,8 @@ import { ContentController } from './content/content.controller';
 import { ContentService } from './content/content.service';
 import { HealthController } from './health.controller';
 import { PrismaService } from './prisma/prisma.service';
+import { ProgressController } from './progress/progress.controller';
+import { ProgressService } from './progress/progress.service';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -46,8 +48,8 @@ const envSchema = z.object({
       },
     ]),
   ],
-  controllers: [HealthController, ContentController, AuthController],
-  providers: [PrismaService, ContentService, AuthService],
-  exports: [PrismaService, ContentService, AuthService],
+  controllers: [HealthController, ContentController, AuthController, ProgressController],
+  providers: [PrismaService, ContentService, AuthService, ProgressService],
+  exports: [PrismaService, ContentService, AuthService, ProgressService],
 })
 export class AppModule {}
