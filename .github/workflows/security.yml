@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "0 6 * * 1" # toda segunda, 06:00 UTC
+    - cron: '0 6 * * 1' # toda segunda, 06:00 UTC
 
 concurrency:
   group: security-${{ github.ref }}
@@ -51,7 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -86,5 +86,6 @@ jobs:
           image-ref: mundo-${{ matrix.service }}:scan
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          exit-code: "1"
+          exit-code: '1'
           vuln-type: os,library
+          trivyignores: .trivyignore
