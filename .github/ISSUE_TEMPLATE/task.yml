@@ -1,0 +1,19 @@
+name: Tarefa
+description: Tarefa do backlog (T-xxx)
+title: "T-000 · "
+labels: [task]
+body:
+  - type: textarea
+    id: objetivo
+    attributes: { label: Objetivo, description: O que precisa ser entregue }
+    validations: { required: true }
+  - type: textarea
+    id: passos
+    attributes: { label: Passos }
+  - type: textarea
+    id: aceite
+    attributes: { label: Critérios de aceite, description: Lista objetiva e verificável }
+    validations: { required: true }
+  - type: textarea
+    id: validar
+    attributes: { label: Como validar }

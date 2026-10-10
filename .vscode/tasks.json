@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "dev", "type": "shell", "command": "pnpm dev", "isBackground": true, "problemMatcher": [] },
+    { "label": "lint", "type": "shell", "command": "pnpm lint", "problemMatcher": [] },
+    { "label": "typecheck", "type": "shell", "command": "pnpm typecheck", "problemMatcher": [] },
+    { "label": "test", "type": "shell", "command": "pnpm test", "problemMatcher": [] },
+    { "label": "build", "type": "shell", "command": "pnpm build", "problemMatcher": [] },
+    { "label": "deps:up (Postgres + Redis)", "type": "shell", "command": "pnpm deps:up", "problemMatcher": [] },
+    { "label": "docker:up (stack completa)", "type": "shell", "command": "pnpm docker:up", "problemMatcher": [] }
+  ]
+}

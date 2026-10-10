@@ -1,0 +1,33 @@
+# Só as dependências (Postgres + Redis) para desenvolver com hot-reload:
+#   pnpm deps:up   e depois   pnpm dev
+name: mundo-deps
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mundo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mundo}
+      POSTGRES_DB: ${POSTGRES_DB:-mundo}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata-dev:
