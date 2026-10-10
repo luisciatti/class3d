@@ -21,17 +21,17 @@ FROM base AS build
 COPY . .
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter @mundo/api...
+RUN pnpm --filter @mundo/api db:generate
 RUN pnpm --filter @mundo/api build
 # Gera uma pasta só com dependências de produção + código compilado
 RUN pnpm --filter @mundo/api deploy --legacy --prod /out
+# Preserva o Prisma Client gerado, que não é copiado pelo deploy.
+RUN cp -R node_modules/.pnpm/@prisma+client@*/node_modules/.prisma \
+    /out/node_modules/.pnpm/@prisma+client@*/node_modules/
 
 # ---------- runtime ----------
-<<<<<<< HEAD
-FROM node:${NODE_VERSION}-alpine AS runtime
-RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
-=======
 FROM node:${NODE_VERSION}-bookworm-slim AS runtime
->>>>>>> d542826 (feat: ci fail resolved)
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 ENV NODE_ENV=production \
     API_PORT=4000
 RUN apt-get update \
