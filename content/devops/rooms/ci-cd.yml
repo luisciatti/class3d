@@ -2,7 +2,7 @@ slug: ci-cd
 floorSlug: devops
 title: CI/CD
 description: Automatize build, teste e deploy com pipelines.
-position: { x: 4, z: -2 }
+position: { x: 0, z: -2 }
 floorColor: '#1fa88a'
 prerequisites: [git]
 lessons:
@@ -13,6 +13,7 @@ lessons:
     xp: 25
     content: |
       CI valida mudanças automaticamente. CD entrega essas mudanças em ambiente seguro e repetível.
+      O objetivo é reduzir risco humano, acelerar feedback e deixar o processo de entrega previsível.
   - slug: lesson-02-github-actions-basico
     title: GitHub Actions básico
     order: 2
@@ -20,6 +21,15 @@ lessons:
     xp: 35
     content: |
       Workflows descrevem etapas como instalação, teste, build e deploy em resposta a eventos do repositório.
+      Em projetos reais, gatilhos como push, pull_request e tag ajudam a automatizar validações e liberações.
+  - slug: lesson-03-seguranca-no-pipeline
+    title: Segurança no pipeline
+    order: 3
+    estimatedMinutes: 10
+    xp: 35
+    content: |
+      Pipelines devem validar segredo, dependências e imagens antes do deploy. Armazenar segredos de forma segura e limitar permissões são práticas essenciais.
+      TODO(revisar): confirmar política de permissões e ferramentas recomendadas para o stack do projeto.
 quiz:
   slug: quiz-ci-cd
   title: Quiz de CI/CD
@@ -29,6 +39,53 @@ quiz:
         - Build e testes automáticos
         - Reescrever a documentação manual
         - Excluir branches antigas
+        - Fazer deploy direto sem validação
+        - Alterar regras de firewall
       correctIndex: 0
       explanation: CI valida automaticamente a qualidade do código antes do merge ou do deploy.
       xp: 10
+    - prompt: O que normalmente dispara um workflow em GitHub Actions?
+      options:
+        - Apenas click manual
+        - Eventos como push, pull request e tags
+        - Um agendamento fixo de banco de dados
+        - O fechamento da issue pela API
+        - Alterações em arquivos de imagem
+      correctIndex: 1
+      explanation: Eventos do repositório ajudam a automatizar qualidade, testes e liberações conforme o fluxo do time.
+      xp: 10
+    - prompt: Qual é o papel principal do CD?
+      options:
+        - Apagar artefatos antigos
+        - Entregar software em ambiente controlado e repetível
+        - Criar commits sem revisão
+        - Substituir a organização do código
+        - Gerenciar tokens do Git
+      correctIndex: 1
+      explanation: CD coloca a mudança em um ambiente e a entrega de forma automatizada e repetível.
+      xp: 10
+    - prompt: Por que segredos devem ser protegidos no pipeline?
+      options:
+        - Para acelerar builds locais
+        - Para evitar vazamento de credenciais e acesso indevido
+        - Para escalar Kubernetes automaticamente
+        - Para reduzir logs de erro
+        - Para ativar pull requests por padrão
+      correctIndex: 1
+      explanation: Credenciais expostas em pipelines podem comprometer ambiente, produção e integrações externas.
+      xp: 10
+    - prompt: O que é um sinal de pipeline bem estruturada?
+      options:
+        - Só executa manualmente no fim do sprint
+        - Tem etapas claras de validação e feedback rápido
+        - Não depende de testes
+        - Ignora falhas de build
+        - Fica escondida do time
+      correctIndex: 1
+      explanation: Pipelines robustas entregam feedback rápido e reduzem risco no processo de entrega.
+      xp: 10
+exercise:
+  title: Exercício prático — pipeline com qualidade e deploy
+  templateUrl: https://github.com/mundo-devops/template-ci-cd
+  instructions: |
+    Crie um workflow de CI com etapas de instalação, lint, testes e build; depois adicione um deploy simulado com ambiente de staging.
