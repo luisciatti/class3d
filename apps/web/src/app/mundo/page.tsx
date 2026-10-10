@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Floor } from '@mundo/shared';
 import { parseLessonMarkdown } from '@mundo/shared';
-import { WorldCanvas } from '../../components/world-canvas';
+import { WorldCanvas, type WorldRoomState } from '../../components/world-canvas';
 import { api, type ProgressSummary, type RoomLessonsResponse } from '../../lib/api';
 
 const fallbackFloors: Floor[] = [
@@ -51,7 +51,12 @@ const fallbackRoomLessons: Record<string, RoomLessonsResponse> = {
     ],
   },
   'ci-cd': {
-    room: { slug: 'ci-cd', title: 'CI/CD', unlocked: true, lockedReason: null },
+    room: {
+      slug: 'ci-cd',
+      title: 'CI/CD',
+      unlocked: false,
+      lockedReason: 'Conclua Git para liberar esta sala.',
+    },
     lessons: [
       {
         id: 'lesson-pipelines',
@@ -74,6 +79,24 @@ const fallbackRoomLessons: Record<string, RoomLessonsResponse> = {
           '# GitHub Actions\n\nOs workflows orquestram jobs em ambientes repetíveis.\n\n- trigger\n- job\n- artifact',
       },
     ],
+  },
+  docker: {
+    room: {
+      slug: 'docker',
+      title: 'Docker',
+      unlocked: false,
+      lockedReason: 'Conclua CI/CD para liberar esta sala.',
+    },
+    lessons: [],
+  },
+  observabilidade: {
+    room: {
+      slug: 'observabilidade',
+      title: 'Observabilidade',
+      unlocked: false,
+      lockedReason: 'Conclua Docker para liberar esta sala.',
+    },
+    lessons: [],
   },
 };
 
@@ -356,6 +379,25 @@ export default function MundoPage() {
     [],
   );
 
+  const worldRoomStates = useMemo<WorldRoomState[]>(() => {
+    const positions: Record<string, readonly [number, number, number]> = {
+      git: [-3.2, 0, 2.2],
+      'ci-cd': [2.6, 0, 1.2],
+      docker: [-2.6, 0, -2.9],
+      observabilidade: [3.2, 0, -2.8],
+    };
+
+    return Object.values(fallbackRoomLessons).map((entry) => ({
+      slug: entry.room.slug,
+      label: entry.room.title,
+      accent: entry.room.unlocked ? 'Disponível' : 'Bloqueada',
+      position: positions[entry.room.slug] ?? [0, 0, 0],
+      color: entry.room.unlocked ? '#13b7a6' : '#94a3b8',
+      unlocked: entry.room.unlocked,
+      lockedReason: entry.room.lockedReason,
+    }));
+  }, []);
+
   const handleFloorChange = (nextFloor: Floor) => {
     if (!unlockedFloorSlugs.has(nextFloor.slug)) {
       return;
@@ -367,6 +409,13 @@ export default function MundoPage() {
   };
 
   const handleRoomSelect = (nextRoomSlug: string) => {
+    const nextRoom = Object.values(fallbackRoomLessons).find(
+      (entry) => entry.room.slug === nextRoomSlug,
+    );
+    if (!nextRoom || !nextRoom.room.unlocked) {
+      return;
+    }
+
     setActiveRoomSlug(nextRoomSlug);
     setSelectedLessonSlug(null);
   };
@@ -630,7 +679,7 @@ export default function MundoPage() {
         </section>
       ) : (
         <section className="world-canvas" aria-label="Cenário 3D do mundo">
-          <WorldCanvas floorSlug={activeFloorSlug} />
+          <WorldCanvas floorSlug={activeFloorSlug} roomStates={worldRoomStates} />
 
           <aside className="lesson-panel" aria-live="polite">
             {!activeRoomSlug || !room ? (

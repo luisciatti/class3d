@@ -11,16 +11,28 @@ import {
   type JSX,
   type MutableRefObject,
 } from 'react';
-import { Group, Object3D, type InstancedMesh } from 'three';
+import { Group, MathUtils, Object3D, type InstancedMesh } from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
-const rooms = [
+export type WorldRoomState = {
+  slug: string;
+  label: string;
+  accent: string;
+  position: readonly [number, number, number];
+  color: string;
+  unlocked: boolean;
+  lockedReason?: string | null;
+};
+
+export const defaultRoomStates: ReadonlyArray<WorldRoomState> = [
   {
     slug: 'git',
     label: 'Git',
     accent: 'Fundamentos',
     position: [-3.2, 0, 2.2] as const,
     color: '#13b7a6',
+    unlocked: true,
+    lockedReason: null,
   },
   {
     slug: 'ci-cd',
@@ -28,6 +40,8 @@ const rooms = [
     accent: 'Automação',
     position: [2.6, 0, 1.2] as const,
     color: '#8b5cf6',
+    unlocked: false,
+    lockedReason: 'Conclua Git para liberar esta sala.',
   },
   {
     slug: 'docker',
@@ -35,6 +49,8 @@ const rooms = [
     accent: 'Containers',
     position: [-2.6, 0, -2.9] as const,
     color: '#0ea5e9',
+    unlocked: false,
+    lockedReason: 'Conclua CI/CD para liberar esta sala.',
   },
   {
     slug: 'observabilidade',
@@ -42,10 +58,12 @@ const rooms = [
     accent: 'Monitoramento',
     position: [3.2, 0, -2.8] as const,
     color: '#f59e0b',
+    unlocked: false,
+    lockedReason: 'Conclua Docker para liberar esta sala.',
   },
-] as const;
+];
 
-const roomBounds = rooms.map((room) => {
+const roomBounds = defaultRoomStates.map((room) => {
   const [x, , z] = room.position;
 
   return {
@@ -323,33 +341,79 @@ function RoomBlock({
   color,
   label,
   accent,
+  unlocked,
+  lockedReason,
 }: {
   position: readonly [number, number, number];
   color: string;
   label: string;
   accent: string;
+  unlocked: boolean;
+  lockedReason?: string | null;
 }) {
+  const doorRef = useRef<Group>(null);
+
+  useFrame((state) => {
+    if (!doorRef.current) {
+      return;
+    }
+
+    const targetX = unlocked ? 0.32 : 0;
+    doorRef.current.position.x = MathUtils.lerp(doorRef.current.position.x, targetX, 0.08);
+    doorRef.current.rotation.y = MathUtils.lerp(
+      doorRef.current.rotation.y,
+      unlocked ? -0.7 : 0,
+      0.08,
+    );
+    doorRef.current.position.y = MathUtils.lerp(
+      doorRef.current.position.y,
+      0.42 + Math.sin(state.clock.elapsedTime * 1.5) * (unlocked ? 0.02 : 0),
+      0.08,
+    );
+  });
+
+  const baseColor = unlocked ? color : '#94a3b8';
+
   return (
     <group position={position}>
       <mesh castShadow receiveShadow position={[0, 0.45, 0]}>
         <boxGeometry args={[2.6, 0.8, 2.6]} />
-        <meshStandardMaterial color={color} roughness={0.8} metalness={0.1} />
+        <meshStandardMaterial
+          color={baseColor}
+          roughness={0.8}
+          metalness={0.1}
+          opacity={unlocked ? 1 : 0.7}
+          transparent
+        />
       </mesh>
 
       <mesh castShadow receiveShadow position={[0, 0.1, 0]}>
         <boxGeometry args={[2.9, 0.12, 2.9]} />
-        <meshStandardMaterial color="#e2e8f0" roughness={0.95} />
+        <meshStandardMaterial color={unlocked ? '#e2e8f0' : '#cbd5e1'} roughness={0.95} />
       </mesh>
 
       <mesh castShadow position={[-0.45, 0.35, 1.25]}>
         <boxGeometry args={[0.8, 0.7, 0.12]} />
-        <meshStandardMaterial color="#f8fafc" transparent opacity={0.18} />
+        <meshStandardMaterial color="#f8fafc" transparent opacity={unlocked ? 0.18 : 0.08} />
       </mesh>
 
-      <mesh castShadow position={[1.1, 0.45, 1.18]}>
-        <boxGeometry args={[0.32, 0.6, 0.08]} />
-        <meshStandardMaterial color="#dbeafe" />
-      </mesh>
+      <group ref={doorRef} position={[0.12, 0.42, 1.17]}>
+        <mesh castShadow position={[0.2, 0, 0]}>
+          <boxGeometry args={[0.7, 0.8, 0.08]} />
+          <meshStandardMaterial
+            color={unlocked ? '#dbeafe' : '#e2e8f0'}
+            roughness={0.5}
+            metalness={0.2}
+          />
+        </mesh>
+      </group>
+
+      {!unlocked ? (
+        <mesh castShadow position={[0.95, 0.8, 1.24]}>
+          <boxGeometry args={[0.34, 0.26, 0.02]} />
+          <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.3} />
+        </mesh>
+      ) : null}
 
       <DeskCluster />
       <ChairCluster />
@@ -358,9 +422,10 @@ function RoomBlock({
       <Sofa position={[-0.2, 0.1, 0.95]} />
 
       <Html position={[0, 2.1, 0]} center distanceFactor={12}>
-        <div className="r3f-billboard">
+        <div className={`r3f-billboard ${unlocked ? 'open' : 'locked'}`}>
           <strong>{label}</strong>
-          <span>{accent}</span>
+          <span>{unlocked ? accent : 'Bloqueada'}</span>
+          {!unlocked && lockedReason ? <small>{lockedReason}</small> : null}
         </div>
       </Html>
     </group>
@@ -529,7 +594,13 @@ function Avatar({
   );
 }
 
-function BuildingScene({ floorSlug = 'devops' }: { floorSlug?: string }) {
+function BuildingScene({
+  floorSlug = 'devops',
+  roomStates = defaultRoomStates,
+}: {
+  floorSlug?: string;
+  roomStates?: ReadonlyArray<WorldRoomState>;
+}) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const targetRef = useRef<[number, number, number] | null>(null);
   const backgroundColor = floorSlug === 'backend' ? '#111827' : '#0b1020';
@@ -561,13 +632,15 @@ function BuildingScene({ floorSlug = 'devops' }: { floorSlug?: string }) {
       <gridHelper args={[24, 24, '#60a5fa', '#1e293b']} position={[0, 0.01, 0]} />
 
       <group position={[0, 0.2 + levelOffset, 0]}>
-        {rooms.map((room) => (
+        {roomStates.map((room) => (
           <RoomBlock
             key={room.slug}
             position={room.position}
             color={room.color}
             label={room.label}
             accent={room.accent}
+            unlocked={room.unlocked}
+            lockedReason={room.lockedReason}
           />
         ))}
       </group>
@@ -609,12 +682,18 @@ function BuildingScene({ floorSlug = 'devops' }: { floorSlug?: string }) {
   );
 }
 
-export function WorldCanvas({ floorSlug = 'devops' }: { floorSlug?: string }): JSX.Element {
+export function WorldCanvas({
+  floorSlug = 'devops',
+  roomStates = defaultRoomStates,
+}: {
+  floorSlug?: string;
+  roomStates?: ReadonlyArray<WorldRoomState>;
+}): JSX.Element {
   return (
     <div className="world-viewport" aria-label="Cenário 3D do prédio do mundo de aprendizado">
       <Suspense fallback={<div className="scene-loading">Carregando mundo...</div>}>
         <Canvas key={floorSlug} shadows dpr={[1, 2]}>
-          <BuildingScene floorSlug={floorSlug} />
+          <BuildingScene floorSlug={floorSlug} roomStates={roomStates} />
         </Canvas>
       </Suspense>
     </div>
