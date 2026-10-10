@@ -14,14 +14,17 @@ enum LessonStatus {
 }
 
 model User {
-  id        String       @id @default(cuid())
-  email     String?      @unique
-  name      String?
-  avatarUrl String?
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  progress  Progress[]
-  achievements Achievement[]
+  id              String       @id @default(cuid())
+  email           String?      @unique
+  name            String?
+  avatarUrl       String?
+  provider        String?      @default("local")
+  providerId      String?
+  refreshTokenHash String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  progress        Progress[]
+  achievements    Achievement[]
 }
 
 model Floor {
