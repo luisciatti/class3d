@@ -4,13 +4,17 @@
 ARG NODE_VERSION=22
 
 # ---------- base ----------
-FROM node:${NODE_VERSION}-alpine AS base
+FROM node:${NODE_VERSION}-bookworm-slim AS base
 ENV PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH \
     HUSKY=0 \
     CI=true \
     NEXT_TELEMETRY_DISABLED=1
-RUN corepack enable
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && corepack enable
 WORKDIR /repo
 
 # ---------- build ----------
@@ -24,11 +28,15 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 RUN pnpm --filter @mundo/web build
 
 # ---------- runtime ----------
-FROM node:${NODE_VERSION}-alpine AS runtime
+FROM node:${NODE_VERSION}-bookworm-slim AS runtime
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
     HOSTNAME=0.0.0.0
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 # Next "standalone" já traz só o necessário (inclusive node_modules mínimo)
 COPY --from=build --chown=node:node /repo/apps/web/.next/standalone ./
