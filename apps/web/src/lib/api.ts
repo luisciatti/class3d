@@ -23,6 +23,31 @@ export type RoomLessonsResponse = {
   lessons: RoomLessonSummary[];
 };
 
+export type ProgressSummary = {
+  userId: string;
+  totalLessons: number;
+  completedLessons: number;
+  inProgressLessons: number;
+  xpEarned: number;
+  level: number;
+  achievements: Array<{
+    slug: string;
+    title: string;
+    description?: string | null;
+    unlockedAt: string | Date;
+  }>;
+  lessons: Array<{
+    lessonId: string;
+    slug: string;
+    title: string;
+    status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+    xp: number;
+    completedAt?: string | null;
+    roomSlug?: string | null;
+    roomTitle?: string | null;
+  }>;
+};
+
 async function fetchJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
@@ -47,6 +72,13 @@ export const api = {
   getHealth: () => fetchJson<HealthResponse>('/health'),
   getFloors: () => fetchJson<Floor[]>('/floors'),
   getRoomLessons: (slug: string) => fetchJson<RoomLessonsResponse>(`/rooms/${slug}/lessons`),
+  getMyProgress: async () => {
+    try {
+      return await fetchJson<ProgressSummary>('/me/progress');
+    } catch {
+      return null;
+    }
+  },
   completeLesson: async (lessonId: string) => {
     const response = await fetch(`${API_BASE_URL}/me/progress/${lessonId}`, {
       method: 'PATCH',

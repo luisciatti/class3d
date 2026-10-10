@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Floor } from '@mundo/shared';
 import { parseLessonMarkdown } from '@mundo/shared';
 import { WorldCanvas } from '../../components/world-canvas';
-import { api, type RoomLessonsResponse } from '../../lib/api';
+import { api, type ProgressSummary, type RoomLessonsResponse } from '../../lib/api';
 
 const fallbackFloors: Floor[] = [
   {
@@ -79,6 +79,25 @@ const fallbackRoomLessons: Record<string, RoomLessonsResponse> = {
 
 type LessonStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
 
+type AchievementReward = {
+  slug: string;
+  title: string;
+  description: string;
+};
+
+const achievementCatalog: AchievementReward[] = [
+  {
+    slug: 'first-lesson',
+    title: 'Primeira aula',
+    description: 'Você concluiu sua primeira aula.',
+  },
+  {
+    slug: 'first-room',
+    title: 'Primeira sala',
+    description: 'Você dominou a sua primeira sala.',
+  },
+];
+
 export function supportsWebGL(): boolean {
   if (typeof window === 'undefined') {
     return true;
@@ -103,6 +122,13 @@ export default function MundoPage() {
     queryFn: api.getFloors,
   });
 
+  const progressSummaryQuery = useQuery({
+    queryKey: ['me-progress'],
+    queryFn: api.getMyProgress,
+    retry: false,
+    staleTime: 5_000,
+  });
+
   const [activeRoomSlug, setActiveRoomSlug] = useState<string | null>(null);
   const [activeFloorSlug, setActiveFloorSlug] = useState<string>(
     fallbackFloors[0]?.slug ?? 'devops',
@@ -110,6 +136,9 @@ export default function MundoPage() {
   const [selectedLessonSlug, setSelectedLessonSlug] = useState<string | null>(null);
   const [progressByLesson, setProgressByLesson] = useState<Record<string, LessonStatus>>({});
   const [isListMode, setIsListMode] = useState<boolean>(() => !supportsWebGL());
+  const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
+  const unlockedAchievementIdsRef = useRef<Set<string>>(new Set());
+  const hasInitializedAchievementsRef = useRef(false);
 
   useEffect(() => {
     if (!supportsWebGL()) {
@@ -199,6 +228,122 @@ export default function MundoPage() {
     ? `${healthQuery.data.service} · ${healthQuery.data.status}`
     : 'API indisponível';
 
+  const localProgress = useMemo(() => {
+    const completedLessons = lessons.filter(
+      (lesson) => (progressByLesson[lesson.slug] ?? 'NOT_STARTED') === 'COMPLETED',
+    );
+    const xpEarned = completedLessons.reduce((sum, lesson) => sum + lesson.xp, 0);
+    const level = Math.max(1, Math.floor(xpEarned / 100) + 1);
+
+    const roomCount = new Set(
+      lessons
+        .filter((lesson) => (progressByLesson[lesson.slug] ?? 'NOT_STARTED') === 'COMPLETED')
+        .map((lesson) => lesson.slug),
+    ).size;
+
+    const achievements = achievementCatalog.filter((achievement) => {
+      if (achievement.slug === 'first-lesson') {
+        return completedLessons.length >= 1;
+      }
+
+      if (achievement.slug === 'first-room') {
+        return roomCount >= 1;
+      }
+
+      return false;
+    });
+
+    return {
+      xpEarned,
+      level,
+      completedLessons: completedLessons.length,
+      totalLessons: lessons.length,
+      achievements,
+    };
+  }, [lessons, progressByLesson]);
+
+  const mergedProgress = useMemo(() => {
+    const fallback: ProgressSummary = {
+      userId: 'local-player',
+      totalLessons: localProgress.totalLessons,
+      completedLessons: localProgress.completedLessons,
+      inProgressLessons: 0,
+      xpEarned: localProgress.xpEarned,
+      level: localProgress.level,
+      achievements: localProgress.achievements.map((achievement) => ({
+        slug: achievement.slug,
+        title: achievement.title,
+        description: achievement.description,
+        unlockedAt: new Date().toISOString(),
+      })),
+      lessons: [],
+    };
+
+    const apiProgress = progressSummaryQuery.data;
+    if (!apiProgress) {
+      return fallback;
+    }
+
+    const mergedAchievements = [...apiProgress.achievements, ...fallback.achievements].reduce<
+      Array<ProgressSummary['achievements'][number]>
+    >((items, achievement) => {
+      const key = achievement.slug;
+      if (!items.some((item) => item.slug === key)) {
+        items.push(achievement);
+      }
+      return items;
+    }, []);
+
+    return {
+      ...fallback,
+      ...apiProgress,
+      xpEarned: Math.max(localProgress.xpEarned, apiProgress.xpEarned ?? 0),
+      level: Math.max(localProgress.level, apiProgress.level ?? 1),
+      achievements: mergedAchievements,
+      totalLessons: Math.max(apiProgress.totalLessons ?? 0, localProgress.totalLessons),
+      completedLessons: Math.max(apiProgress.completedLessons ?? 0, localProgress.completedLessons),
+    };
+  }, [localProgress, progressSummaryQuery.data]);
+
+  const xpProgress = mergedProgress.xpEarned % 100;
+  const xpProgressPercent = Math.min(100, xpProgress);
+  const nextLevelXp = 100 - xpProgress;
+
+  useEffect(() => {
+    if (!hasInitializedAchievementsRef.current) {
+      hasInitializedAchievementsRef.current = true;
+      unlockedAchievementIdsRef.current = new Set(
+        mergedProgress.achievements.map((achievement) => achievement.slug),
+      );
+      return;
+    }
+
+    const newlyUnlocked = mergedProgress.achievements.filter(
+      (achievement) => !unlockedAchievementIdsRef.current.has(achievement.slug),
+    );
+
+    if (newlyUnlocked.length === 0) {
+      return;
+    }
+
+    const latest = newlyUnlocked[0];
+    if (!latest) {
+      return;
+    }
+
+    setToast({
+      title: latest.title,
+      message: latest.description ?? 'Conquista desbloqueada.',
+    });
+
+    unlockedAchievementIdsRef.current = new Set(
+      mergedProgress.achievements.map((achievement) => achievement.slug),
+    );
+
+    const timeoutId = window.setTimeout(() => setToast(null), 3200);
+    return () => window.clearTimeout(timeoutId);
+  }, [mergedProgress.achievements]);
+
   const floors = floorsQuery.data ?? fallbackFloors;
   const unlockedFloorSlugs = useMemo(() => new Set<string>(['devops']), []);
   const roomOptions = useMemo(
@@ -264,6 +409,53 @@ export default function MundoPage() {
           <span>{healthStatus}</span>
         </div>
 
+        <div className="player-hud" aria-live="polite">
+          <div className="hud-header">
+            <div>
+              <p className="eyebrow">Progresso</p>
+              <h2>Nível {mergedProgress.level}</h2>
+            </div>
+            <span className="level-badge">{mergedProgress.xpEarned} XP</span>
+          </div>
+
+          <div className="xp-meter" aria-label="Barra de XP do jogador">
+            <span style={{ width: `${xpProgressPercent}%` }} />
+          </div>
+
+          <div className="hud-summary">
+            <span>
+              {mergedProgress.completedLessons}/{mergedProgress.totalLessons} aulas
+            </span>
+            <span>{nextLevelXp} XP para o próximo nível</span>
+          </div>
+
+          <div className="achievement-list" aria-label="Conquistas desbloqueadas">
+            {mergedProgress.achievements.length > 0 ? (
+              mergedProgress.achievements.map((achievement) => (
+                <div key={achievement.slug} className="achievement-item">
+                  <span className="achievement-icon" aria-hidden="true">
+                    ✓
+                  </span>
+                  <div>
+                    <strong>{achievement.title}</strong>
+                    <small>{achievement.description}</small>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="achievement-item empty">
+                <span className="achievement-icon" aria-hidden="true">
+                  •
+                </span>
+                <div>
+                  <strong>Ainda sem conquistas</strong>
+                  <small>Conclua sua primeira aula para começar.</small>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="view-toggle" role="tablist" aria-label="Alternar visualização do mundo">
           <button
             type="button"
@@ -311,6 +503,13 @@ export default function MundoPage() {
           })}
         </div>
       </aside>
+
+      {toast ? (
+        <div className="achievement-toast" role="status" aria-live="polite">
+          <strong>{toast.title}</strong>
+          <span>{toast.message}</span>
+        </div>
+      ) : null}
 
       {isListMode ? (
         <section className="list-mode" aria-label="Lista acessível do mundo">
