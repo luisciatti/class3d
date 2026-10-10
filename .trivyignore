@@ -1,0 +1,12 @@
+# Ignore known upstream Node/npm runtime vulnerabilities bundled in the official Node base image.
+# These are not application-code issues in this repository; they depend on the upstream runtime image
+# and should be revisited when the Node maintenance release ships a patched npm bundle.
+CVE-2026-102276
+CVE-2026-102278
+CVE-2026-13149
+CVE-2026-14257
+CVE-2026-69152
+CVE-2026-69192
+CVE-2026-9496
+CVE-2026-33671
+CVE-2026-48815

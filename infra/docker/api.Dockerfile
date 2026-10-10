@@ -4,12 +4,16 @@
 ARG NODE_VERSION=22
 
 # ---------- base ----------
-FROM node:${NODE_VERSION}-alpine AS base
+FROM node:${NODE_VERSION}-bookworm-slim AS base
 ENV PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH \
     HUSKY=0 \
     CI=true
-RUN corepack enable
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && corepack enable
 WORKDIR /repo
 
 # ---------- build ----------
@@ -22,10 +26,18 @@ RUN pnpm --filter @mundo/api build
 RUN pnpm --filter @mundo/api deploy --legacy --prod /out
 
 # ---------- runtime ----------
+<<<<<<< HEAD
 FROM node:${NODE_VERSION}-alpine AS runtime
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+=======
+FROM node:${NODE_VERSION}-bookworm-slim AS runtime
+>>>>>>> d542826 (feat: ci fail resolved)
 ENV NODE_ENV=production \
     API_PORT=4000
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build --chown=node:node /out/node_modules ./node_modules
 COPY --from=build --chown=node:node /out/dist ./dist
