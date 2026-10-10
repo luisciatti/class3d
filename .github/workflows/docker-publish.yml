@@ -24,7 +24,7 @@ jobs:
       matrix:
         service: [api, web]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Nome da imagem em minúsculas (exigência do GHCR)
         run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}/${{ matrix.service }}" >> "$GITHUB_ENV"
