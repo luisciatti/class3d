@@ -191,6 +191,90 @@ a {
   min-height: calc(100vh - 80px);
 }
 
+.view-toggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  margin-top: 20px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.15);
+}
+
+.view-tab {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.view-tab.selected {
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 6px 18px var(--shadow);
+}
+
+.list-mode {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 20px;
+  min-height: 620px;
+}
+
+.list-panel {
+  border: 1px solid var(--panel-border);
+  background: var(--bg-elevated);
+  border-radius: 24px;
+  box-shadow: 0 18px 40px var(--shadow);
+}
+
+.list-panel h2 {
+  margin: 0;
+  color: var(--text);
+}
+
+.accessible-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.access-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.04);
+  padding: 12px 14px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.access-item.selected {
+  border-color: rgba(37, 99, 235, 0.7);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.access-item span {
+  color: var(--muted);
+}
+
+.accessible-lesson-panel {
+  padding: 20px;
+}
+
 .world-sidebar,
 .world-canvas {
   border: 1px solid var(--panel-border);
@@ -522,8 +606,32 @@ a {
   font-size: 0.62rem;
 }
 
+.view-tab:focus-visible,
+.floor-option:focus-visible,
+.lesson-item:focus-visible,
+.access-item:focus-visible,
+.primary-button:focus-visible {
+  outline: 3px solid rgba(96, 165, 250, 0.9);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media (max-width: 840px) {
-  .world-shell {
+  .world-shell,
+  .list-mode {
     grid-template-columns: 1fr;
   }
 
