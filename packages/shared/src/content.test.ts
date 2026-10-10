@@ -1,7 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { ContentDocumentSchema } from './content.js';
+import { ContentDocumentSchema, parseLessonMarkdown } from './content.js';
 
 describe('content schema validation', () => {
+  it('parses lesson markdown into readable blocks', () => {
+    const blocks = parseLessonMarkdown(
+      '# O que é pipeline?\n\nTodo deploy começa por uma pipeline.\n\n- build\n- test\n- deploy',
+    );
+
+    expect(blocks).toEqual([
+      { type: 'heading', value: 'O que é pipeline?' },
+      { type: 'paragraph', value: 'Todo deploy começa por uma pipeline.' },
+      { type: 'list', value: 'build' },
+      { type: 'list', value: 'test' },
+      { type: 'list', value: 'deploy' },
+    ]);
+  });
+
   it('accepts a valid DevOps content document', () => {
     const document = {
       floor: {
