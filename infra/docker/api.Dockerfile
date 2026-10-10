@@ -23,6 +23,7 @@ RUN pnpm --filter @mundo/api deploy --legacy --prod /out
 
 # ---------- runtime ----------
 FROM node:${NODE_VERSION}-alpine AS runtime
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 ENV NODE_ENV=production \
     API_PORT=4000
 WORKDIR /app
