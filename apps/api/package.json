@@ -14,6 +14,7 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@mundo/shared": "workspace:*",
     "@nestjs/common": "^11.1.0",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.0",
