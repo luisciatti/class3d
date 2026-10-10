@@ -25,6 +25,7 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 COPY . .
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter @mundo/web...
+RUN pnpm --filter @mundo/shared build
 RUN pnpm --filter @mundo/web build
 
 # ---------- runtime ----------
