@@ -1,0 +1,34 @@
+slug: git
+floorSlug: devops
+title: Git
+description: Controle de versão e trabalho em equipe.
+position: { x: -4, z: 2 }
+floorColor: '#4f46e5'
+prerequisites: []
+lessons:
+  - slug: lesson-01-git-basico
+    title: Git básico
+    order: 1
+    estimatedMinutes: 8
+    xp: 25
+    content: |
+      Git registra alterações em um histórico, permitindo colaboração, revisão e rollback.
+  - slug: lesson-02-branches-e-merge
+    title: Branches e merge
+    order: 2
+    estimatedMinutes: 10
+    xp: 30
+    content: |
+      Branches isolam mudanças, enquanto merge integra o trabalho em um ponto comum.
+quiz:
+  slug: quiz-git
+  title: Quiz de Git
+  questions:
+    - prompt: O que descreve melhor o objetivo de uma branch?
+      options:
+        - Manter um ambiente de produção
+        - Isolar mudanças em um contexto paralelo
+        - Copiar imagens Docker
+      correctIndex: 1
+      explanation: Branches permitem evoluir o código separadamente sem afetar o fluxo principal.
+      xp: 10
