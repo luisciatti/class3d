@@ -230,14 +230,65 @@ a {
   background: #f59e0b;
 }
 
-.room-list {
+.room-list,
+.floor-selector {
   display: grid;
   gap: 14px;
   margin-top: 22px;
 }
 
-.room-card {
+.room-card,
+.floor-option {
   padding: 18px;
+}
+
+.floor-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  border: 1px solid var(--panel-border);
+  background: var(--panel);
+  border-radius: 18px;
+  box-shadow: 0 12px 30px var(--shadow);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.floor-option:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.floor-option.active {
+  border-color: rgba(37, 99, 235, 0.6);
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.floor-option.locked {
+  opacity: 0.55;
+  filter: grayscale(0.2);
+  cursor: not-allowed;
+}
+
+.floor-option-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.floor-option strong {
+  font-size: 1.4rem;
+  color: var(--text);
+}
+
+.floor-option span,
+.floor-option small {
+  color: var(--muted);
 }
 
 .room-order {
