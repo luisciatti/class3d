@@ -125,3 +125,41 @@ export type QuestionContent = z.infer<typeof QuestionContentSchema>;
 export type QuizContent = z.infer<typeof QuizContentSchema>;
 export type RoomContent = z.infer<typeof RoomContentSchema>;
 export type ContentDocument = z.infer<typeof ContentDocumentSchema>;
+
+export type LessonMarkdownBlock = {
+  type: 'heading' | 'paragraph' | 'list';
+  value: string;
+};
+
+export function parseLessonMarkdown(markdown: string): LessonMarkdownBlock[] {
+  const blocks: LessonMarkdownBlock[] = markdown
+    .split(/\n{2,}/)
+    .flatMap((block): LessonMarkdownBlock[] => {
+      const trimmed = block.trim();
+
+      if (!trimmed) {
+        return [];
+      }
+
+      const listLines = trimmed
+        .split(/\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .filter((line) => /^[-*]\s|^\d+\.\s/.test(line));
+
+      if (trimmed.startsWith('#')) {
+        return [{ type: 'heading', value: trimmed.replace(/^#+\s*/, '').trim() }];
+      }
+
+      if (listLines.length > 0) {
+        return listLines.map((line): LessonMarkdownBlock => ({
+          type: 'list',
+          value: line.replace(/^[-*]\s*|^\d+\.\s*/, '').trim(),
+        }));
+      }
+
+      return [{ type: 'paragraph', value: trimmed.replace(/\s+/g, ' ').trim() }];
+    });
+
+  return blocks.filter((block) => block.value.length > 0);
+}
