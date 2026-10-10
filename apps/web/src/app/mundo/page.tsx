@@ -79,6 +79,19 @@ const fallbackRoomLessons: Record<string, RoomLessonsResponse> = {
 
 type LessonStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
 
+export function supportsWebGL(): boolean {
+  if (typeof window === 'undefined') {
+    return true;
+  }
+
+  try {
+    const canvas = document.createElement('canvas');
+    return Boolean(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+  } catch {
+    return false;
+  }
+}
+
 export default function MundoPage() {
   const healthQuery = useQuery({
     queryKey: ['health'],
@@ -96,6 +109,13 @@ export default function MundoPage() {
   );
   const [selectedLessonSlug, setSelectedLessonSlug] = useState<string | null>(null);
   const [progressByLesson, setProgressByLesson] = useState<Record<string, LessonStatus>>({});
+  const [isListMode, setIsListMode] = useState<boolean>(() => !supportsWebGL());
+
+  useEffect(() => {
+    if (!supportsWebGL()) {
+      setIsListMode(true);
+    }
+  }, []);
 
   useEffect(() => {
     const handleRoomEnter = (event: Event) => {
@@ -181,6 +201,15 @@ export default function MundoPage() {
 
   const floors = floorsQuery.data ?? fallbackFloors;
   const unlockedFloorSlugs = useMemo(() => new Set<string>(['devops']), []);
+  const roomOptions = useMemo(
+    () =>
+      Object.values(fallbackRoomLessons).map((entry) => ({
+        slug: entry.room.slug,
+        title: entry.room.title,
+        unlocked: entry.room.unlocked,
+      })),
+    [],
+  );
 
   const handleFloorChange = (nextFloor: Floor) => {
     if (!unlockedFloorSlugs.has(nextFloor.slug)) {
@@ -189,6 +218,11 @@ export default function MundoPage() {
 
     setActiveFloorSlug(nextFloor.slug);
     setActiveRoomSlug(null);
+    setSelectedLessonSlug(null);
+  };
+
+  const handleRoomSelect = (nextRoomSlug: string) => {
+    setActiveRoomSlug(nextRoomSlug);
     setSelectedLessonSlug(null);
   };
 
@@ -209,6 +243,16 @@ export default function MundoPage() {
     }
   };
 
+  const visibleRoomList = useMemo(() => {
+    if (activeFloorSlug === 'backend') {
+      return roomOptions.filter((room) => room.slug === 'git' || room.slug === 'ci-cd');
+    }
+
+    return roomOptions;
+  }, [activeFloorSlug, roomOptions]);
+
+  const roomLabel = room?.title ?? visibleRoomList[0]?.title ?? 'Sala';
+
   return (
     <main className="world-shell">
       <aside className="world-sidebar">
@@ -218,6 +262,27 @@ export default function MundoPage() {
         <div className="status-card" aria-live="polite">
           <span className={`status-dot ${healthQuery.isSuccess ? 'online' : 'offline'}`} />
           <span>{healthStatus}</span>
+        </div>
+
+        <div className="view-toggle" role="tablist" aria-label="Alternar visualização do mundo">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!isListMode}
+            className={`view-tab ${!isListMode ? 'selected' : ''}`}
+            onClick={() => setIsListMode(false)}
+          >
+            Visão 3D
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={isListMode}
+            className={`view-tab ${isListMode ? 'selected' : ''}`}
+            onClick={() => setIsListMode(true)}
+          >
+            Visão lista
+          </button>
         </div>
 
         <div className="floor-selector" aria-label="Seletor de andares">
@@ -247,121 +312,240 @@ export default function MundoPage() {
         </div>
       </aside>
 
-      <section className="world-canvas" aria-label="Cenário 3D do mundo">
-        <WorldCanvas floorSlug={activeFloorSlug} />
-
-        <aside className="lesson-panel" aria-live="polite">
-          {!activeRoomSlug || !room ? (
-            <div className="empty-state">
-              <p className="eyebrow">Sala</p>
-              <h2>Entre em uma sala</h2>
-              <p>
-                Ao atravessar a porta de um ambiente, o painel abre automaticamente com as aulas.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="lesson-header">
-                <div>
-                  <p className="eyebrow">Sala atual</p>
-                  <h2>{room.title}</h2>
-                </div>
-                <span className={`status-badge ${room.unlocked ? 'ready' : 'locked'}`}>
-                  {room.unlocked ? 'Aberta' : 'Bloqueada'}
-                </span>
-              </div>
-
-              {room.lockedReason ? (
-                <p className="room-lock-note">Motivo: {room.lockedReason}</p>
-              ) : null}
-
-              <div className="progress-track" aria-label="Progresso da sala">
-                <span className="progress-fill" style={{ width: `${progressPercent}%` }} />
-              </div>
-
-              <div className="lesson-list" aria-label="Lista de aulas da sala">
-                {lessons.length === 0 ? (
-                  <p className="empty-copy">Ainda não há aulas publicadas para esta sala.</p>
-                ) : (
-                  lessons.map((lesson) => {
-                    const status = progressByLesson[lesson.slug] ?? 'NOT_STARTED';
-
-                    return (
-                      <button
-                        key={lesson.slug}
-                        type="button"
-                        className={`lesson-item ${selectedLessonSlug === lesson.slug ? 'selected' : ''}`}
-                        onClick={() => setSelectedLessonSlug(lesson.slug)}
-                      >
-                        <div>
-                          <strong>{lesson.title}</strong>
-                          <small>
-                            {lesson.estimatedMinutes} min · {lesson.xp} XP
-                          </small>
-                        </div>
-                        <span
-                          className={`status-badge ${status === 'COMPLETED' ? 'done' : 'pending'}`}
-                        >
-                          {status === 'COMPLETED' ? 'Concluída' : 'Pendente'}
-                        </span>
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-
-              {activeLesson ? (
-                <article className="lesson-content">
-                  <div className="lesson-title-row">
-                    <div>
-                      <p className="eyebrow">Aula atual</p>
-                      <h3>{activeLesson.title}</h3>
-                    </div>
-                    <span className="xp-pill">{activeLesson.xp} XP</span>
-                  </div>
-
-                  {(() => {
-                    const blocks = parseLessonMarkdown(activeLesson.content);
-                    const listItems = blocks.filter((block) => block.type === 'list');
-
-                    return (
-                      <>
-                        {blocks.map((block, index) => {
-                          if (block.type === 'heading') {
-                            return <h4 key={`${block.type}-${index}`}>{block.value}</h4>;
-                          }
-
-                          if (block.type === 'list') {
-                            return null;
-                          }
-
-                          return <p key={`${block.type}-${index}`}>{block.value}</p>;
-                        })}
-
-                        {listItems.length > 0 ? (
-                          <ul className="lesson-list-items">
-                            {listItems.map((block, index) => (
-                              <li key={`${block.value}-${index}`}>{block.value}</li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </>
-                    );
-                  })()}
-
+      {isListMode ? (
+        <section className="list-mode" aria-label="Lista acessível do mundo">
+          <nav className="list-panel" aria-label="Navegação por salas">
+            <h2>Salas</h2>
+            <ul className="accessible-list" role="list">
+              {visibleRoomList.map((entry) => (
+                <li key={entry.slug}>
                   <button
                     type="button"
-                    className="primary-button lesson-button"
-                    onClick={() => completeLesson(activeLesson)}
+                    className={`access-item ${activeRoomSlug === entry.slug ? 'selected' : ''}`}
+                    onClick={() => handleRoomSelect(entry.slug)}
+                    aria-pressed={activeRoomSlug === entry.slug}
                   >
-                    Concluir aula
+                    <strong>{entry.title}</strong>
+                    <span>{entry.unlocked ? 'Disponível' : 'Bloqueada'}</span>
                   </button>
-                </article>
-              ) : null}
-            </>
-          )}
-        </aside>
-      </section>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <article className="list-panel lesson-panel accessible-lesson-panel" aria-live="polite">
+            <div className="lesson-header">
+              <div>
+                <p className="eyebrow">Sala atual</p>
+                <h2>{roomLabel}</h2>
+              </div>
+              <span className={`status-badge ${(room?.unlocked ?? true) ? 'ready' : 'locked'}`}>
+                {(room?.unlocked ?? true) ? 'Aberta' : 'Bloqueada'}
+              </span>
+            </div>
+
+            <div className="progress-track" aria-label="Progresso da sala">
+              <span className="progress-fill" style={{ width: `${progressPercent}%` }} />
+            </div>
+
+            <div className="lesson-list" aria-label="Lista de aulas em modo texto">
+              {lessons.length === 0 ? (
+                <p className="empty-copy">Ainda não há aulas publicadas para esta sala.</p>
+              ) : (
+                lessons.map((lesson) => {
+                  const status = progressByLesson[lesson.slug] ?? 'NOT_STARTED';
+
+                  return (
+                    <button
+                      key={lesson.slug}
+                      type="button"
+                      className={`lesson-item ${selectedLessonSlug === lesson.slug ? 'selected' : ''}`}
+                      onClick={() => setSelectedLessonSlug(lesson.slug)}
+                    >
+                      <div>
+                        <strong>{lesson.title}</strong>
+                        <small>
+                          {lesson.estimatedMinutes} min · {lesson.xp} XP
+                        </small>
+                      </div>
+                      <span
+                        className={`status-badge ${status === 'COMPLETED' ? 'done' : 'pending'}`}
+                      >
+                        {status === 'COMPLETED' ? 'Concluída' : 'Pendente'}
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {activeLesson ? (
+              <article className="lesson-content">
+                <div className="lesson-title-row">
+                  <div>
+                    <p className="eyebrow">Aula atual</p>
+                    <h3>{activeLesson.title}</h3>
+                  </div>
+                  <span className="xp-pill">{activeLesson.xp} XP</span>
+                </div>
+
+                {(() => {
+                  const blocks = parseLessonMarkdown(activeLesson.content);
+                  const listItems = blocks.filter((block) => block.type === 'list');
+
+                  return (
+                    <>
+                      {blocks.map((block, index) => {
+                        if (block.type === 'heading') {
+                          return <h4 key={`${block.type}-${index}`}>{block.value}</h4>;
+                        }
+
+                        if (block.type === 'list') {
+                          return null;
+                        }
+
+                        return <p key={`${block.type}-${index}`}>{block.value}</p>;
+                      })}
+
+                      {listItems.length > 0 ? (
+                        <ul className="lesson-list-items">
+                          {listItems.map((block, index) => (
+                            <li key={`${block.value}-${index}`}>{block.value}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </>
+                  );
+                })()}
+
+                <button
+                  type="button"
+                  className="primary-button lesson-button"
+                  onClick={() => completeLesson(activeLesson)}
+                >
+                  Concluir aula
+                </button>
+              </article>
+            ) : null}
+          </article>
+        </section>
+      ) : (
+        <section className="world-canvas" aria-label="Cenário 3D do mundo">
+          <WorldCanvas floorSlug={activeFloorSlug} />
+
+          <aside className="lesson-panel" aria-live="polite">
+            {!activeRoomSlug || !room ? (
+              <div className="empty-state">
+                <p className="eyebrow">Sala</p>
+                <h2>Entre em uma sala</h2>
+                <p>
+                  Ao atravessar a porta de um ambiente, o painel abre automaticamente com as aulas.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="lesson-header">
+                  <div>
+                    <p className="eyebrow">Sala atual</p>
+                    <h2>{room.title}</h2>
+                  </div>
+                  <span className={`status-badge ${room.unlocked ? 'ready' : 'locked'}`}>
+                    {room.unlocked ? 'Aberta' : 'Bloqueada'}
+                  </span>
+                </div>
+
+                {room.lockedReason ? (
+                  <p className="room-lock-note">Motivo: {room.lockedReason}</p>
+                ) : null}
+
+                <div className="progress-track" aria-label="Progresso da sala">
+                  <span className="progress-fill" style={{ width: `${progressPercent}%` }} />
+                </div>
+
+                <div className="lesson-list" aria-label="Lista de aulas da sala">
+                  {lessons.length === 0 ? (
+                    <p className="empty-copy">Ainda não há aulas publicadas para esta sala.</p>
+                  ) : (
+                    lessons.map((lesson) => {
+                      const status = progressByLesson[lesson.slug] ?? 'NOT_STARTED';
+
+                      return (
+                        <button
+                          key={lesson.slug}
+                          type="button"
+                          className={`lesson-item ${selectedLessonSlug === lesson.slug ? 'selected' : ''}`}
+                          onClick={() => setSelectedLessonSlug(lesson.slug)}
+                        >
+                          <div>
+                            <strong>{lesson.title}</strong>
+                            <small>
+                              {lesson.estimatedMinutes} min · {lesson.xp} XP
+                            </small>
+                          </div>
+                          <span
+                            className={`status-badge ${status === 'COMPLETED' ? 'done' : 'pending'}`}
+                          >
+                            {status === 'COMPLETED' ? 'Concluída' : 'Pendente'}
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+
+                {activeLesson ? (
+                  <article className="lesson-content">
+                    <div className="lesson-title-row">
+                      <div>
+                        <p className="eyebrow">Aula atual</p>
+                        <h3>{activeLesson.title}</h3>
+                      </div>
+                      <span className="xp-pill">{activeLesson.xp} XP</span>
+                    </div>
+
+                    {(() => {
+                      const blocks = parseLessonMarkdown(activeLesson.content);
+                      const listItems = blocks.filter((block) => block.type === 'list');
+
+                      return (
+                        <>
+                          {blocks.map((block, index) => {
+                            if (block.type === 'heading') {
+                              return <h4 key={`${block.type}-${index}`}>{block.value}</h4>;
+                            }
+
+                            if (block.type === 'list') {
+                              return null;
+                            }
+
+                            return <p key={`${block.type}-${index}`}>{block.value}</p>;
+                          })}
+
+                          {listItems.length > 0 ? (
+                            <ul className="lesson-list-items">
+                              {listItems.map((block, index) => (
+                                <li key={`${block.value}-${index}`}>{block.value}</li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </>
+                      );
+                    })()}
+
+                    <button
+                      type="button"
+                      className="primary-button lesson-button"
+                      onClick={() => completeLesson(activeLesson)}
+                    >
+                      Concluir aula
+                    </button>
+                  </article>
+                ) : null}
+              </>
+            )}
+          </aside>
+        </section>
+      )}
     </main>
   );
 }
