@@ -91,6 +91,9 @@ export default function MundoPage() {
   });
 
   const [activeRoomSlug, setActiveRoomSlug] = useState<string | null>(null);
+  const [activeFloorSlug, setActiveFloorSlug] = useState<string>(
+    fallbackFloors[0]?.slug ?? 'devops',
+  );
   const [selectedLessonSlug, setSelectedLessonSlug] = useState<string | null>(null);
   const [progressByLesson, setProgressByLesson] = useState<Record<string, LessonStatus>>({});
 
@@ -177,6 +180,17 @@ export default function MundoPage() {
     : 'API indisponível';
 
   const floors = floorsQuery.data ?? fallbackFloors;
+  const unlockedFloorSlugs = useMemo(() => new Set<string>(['devops']), []);
+
+  const handleFloorChange = (nextFloor: Floor) => {
+    if (!unlockedFloorSlugs.has(nextFloor.slug)) {
+      return;
+    }
+
+    setActiveFloorSlug(nextFloor.slug);
+    setActiveRoomSlug(null);
+    setSelectedLessonSlug(null);
+  };
 
   const completeLesson = async (lesson: (typeof lessons)[number]) => {
     const nextStatus: LessonStatus = 'COMPLETED';
@@ -206,22 +220,35 @@ export default function MundoPage() {
           <span>{healthStatus}</span>
         </div>
 
-        <div className="room-list" aria-label="Lista de andares">
-          {floors.map((floor) => (
-            <article key={floor.slug} className="room-card">
-              <div>
-                <span className="room-order">Andar {floor.order}</span>
-                <h2>{floor.title}</h2>
-              </div>
-              <p>{floor.theme}</p>
-              <small>{floor.unlockRequirement ?? 'Liberado imediatamente'}</small>
-            </article>
-          ))}
+        <div className="floor-selector" aria-label="Seletor de andares">
+          {floors.map((floor) => {
+            const isUnlocked = unlockedFloorSlugs.has(floor.slug);
+            const isActive = floor.slug === activeFloorSlug;
+
+            return (
+              <button
+                key={floor.slug}
+                type="button"
+                className={`floor-option ${isActive ? 'active' : ''} ${isUnlocked ? '' : 'locked'}`}
+                onClick={() => handleFloorChange(floor)}
+                disabled={!isUnlocked}
+                aria-pressed={isActive}
+              >
+                <span className="floor-option-header">
+                  <span className="room-order">Andar {floor.order}</span>
+                  {!isUnlocked ? <span className="status-badge locked">Bloqueado</span> : null}
+                </span>
+                <strong>{floor.title}</strong>
+                <span>{floor.theme}</span>
+                <small>{floor.unlockRequirement ?? 'Liberado imediatamente'}</small>
+              </button>
+            );
+          })}
         </div>
       </aside>
 
       <section className="world-canvas" aria-label="Cenário 3D do mundo">
-        <WorldCanvas />
+        <WorldCanvas floorSlug={activeFloorSlug} />
 
         <aside className="lesson-panel" aria-live="polite">
           {!activeRoomSlug || !room ? (

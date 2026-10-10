@@ -529,16 +529,20 @@ function Avatar({
   );
 }
 
-function BuildingScene() {
+function BuildingScene({ floorSlug = 'devops' }: { floorSlug?: string }) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const targetRef = useRef<[number, number, number] | null>(null);
+  const backgroundColor = floorSlug === 'backend' ? '#111827' : '#0b1020';
+  const cameraPosition: [number, number, number] =
+    floorSlug === 'backend' ? [15, 15, 15] : [12, 12, 12];
+  const levelOffset = floorSlug === 'backend' ? 1.4 : 0;
 
   return (
     <>
-      <color attach="background" args={['#0b1020']} />
-      <fog attach="fog" args={['#0b1020', 12, 30]} />
+      <color attach="background" args={[backgroundColor]} />
+      <fog attach="fog" args={[backgroundColor, 12, 30]} />
 
-      <OrthographicCamera makeDefault position={[12, 12, 12]} zoom={52} near={0.1} far={100} />
+      <OrthographicCamera makeDefault position={cameraPosition} zoom={52} near={0.1} far={100} />
 
       <ambientLight intensity={1.6} />
       <directionalLight
@@ -556,7 +560,7 @@ function BuildingScene() {
 
       <gridHelper args={[24, 24, '#60a5fa', '#1e293b']} position={[0, 0.01, 0]} />
 
-      <group position={[0, 0.2, 0]}>
+      <group position={[0, 0.2 + levelOffset, 0]}>
         {rooms.map((room) => (
           <RoomBlock
             key={room.slug}
@@ -605,12 +609,12 @@ function BuildingScene() {
   );
 }
 
-export function WorldCanvas(): JSX.Element {
+export function WorldCanvas({ floorSlug = 'devops' }: { floorSlug?: string }): JSX.Element {
   return (
     <div className="world-viewport" aria-label="Cenário 3D do prédio do mundo de aprendizado">
       <Suspense fallback={<div className="scene-loading">Carregando mundo...</div>}>
-        <Canvas shadows dpr={[1, 2]}>
-          <BuildingScene />
+        <Canvas key={floorSlug} shadows dpr={[1, 2]}>
+          <BuildingScene floorSlug={floorSlug} />
         </Canvas>
       </Suspense>
     </div>
