@@ -1,0 +1,34 @@
+slug: docker
+floorSlug: devops
+title: Docker
+description: Empacotar aplicações em containers reprodutíveis.
+position: { x: -1, z: -5 }
+floorColor: '#f59e0b'
+prerequisites: [git]
+lessons:
+  - slug: lesson-01-containers-e-imagens
+    title: Containers e imagens
+    order: 1
+    estimatedMinutes: 9
+    xp: 30
+    content: |
+      Containers agrupam aplicação, dependências e runtime em um ambiente previsível.
+  - slug: lesson-02-docker-compose
+    title: Docker Compose
+    order: 2
+    estimatedMinutes: 10
+    xp: 35
+    content: |
+      Compose define serviços, redes e volumes para subir a stack local de forma declarativa.
+quiz:
+  slug: quiz-docker
+  title: Quiz de Docker
+  questions:
+    - prompt: O que um container fornece?
+      options:
+        - Um ambiente isolado e reproducível
+        - Um banco de dados distribuído
+        - A própria rede pública
+      correctIndex: 0
+      explanation: Containers empacotam a aplicação e suas dependências em um ambiente isolado e previsível.
+      xp: 10

@@ -2,6 +2,7 @@ import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from 'redis';
 import { Client } from 'pg';
+import { HealthResponseSchema, ReadyResponseSchema } from '@mundo/shared';
 
 type DependencyHealth = 'up' | 'down';
 type ResponseLike = { status: (code: number) => void };
@@ -12,11 +13,13 @@ export class HealthController {
 
   @Get('health')
   check() {
-    return {
+    const response = {
       status: 'ok' as const,
       service: 'api',
       timestamp: new Date().toISOString(),
     };
+
+    return HealthResponseSchema.parse(response);
   }
 
   @Get('ready')
@@ -32,11 +35,13 @@ export class HealthController {
       res.status(isReady ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    return {
+    const response = {
       status: isReady ? 'ok' : 'degraded',
       checks,
       timestamp: new Date().toISOString(),
     };
+
+    return ReadyResponseSchema.parse(response);
   }
 
   private async checkDatabase(): Promise<DependencyHealth> {

@@ -21,6 +21,7 @@ FROM base AS build
 COPY . .
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter @mundo/api...
+RUN pnpm --filter @mundo/shared build
 RUN pnpm --filter @mundo/api db:generate
 RUN pnpm --filter @mundo/api build
 # Gera uma pasta só com dependências de produção + código compilado
