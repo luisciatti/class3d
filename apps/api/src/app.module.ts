@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { z } from 'zod';
+import { AuthController } from './auth/auth.controller';
+import { AuthService } from './auth/auth.service';
 import { ContentController } from './content/content.controller';
 import { ContentService } from './content/content.service';
 import { HealthController } from './health.controller';
@@ -13,6 +15,9 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('*'),
   DATABASE_URL: z.string().url().default('postgresql://mundo:mundo@localhost:5432/mundo'),
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
+  JWT_SECRET: z.string().default('dev-secret-change-me'),
+  JWT_ACCESS_TTL: z.coerce.number().default(900),
+  JWT_REFRESH_TTL: z.coerce.number().default(604800),
 });
 
 @Module({
@@ -41,8 +46,8 @@ const envSchema = z.object({
       },
     ]),
   ],
-  controllers: [HealthController, ContentController],
-  providers: [PrismaService, ContentService],
-  exports: [PrismaService, ContentService],
+  controllers: [HealthController, ContentController, AuthController],
+  providers: [PrismaService, ContentService, AuthService],
+  exports: [PrismaService, ContentService, AuthService],
 })
 export class AppModule {}
