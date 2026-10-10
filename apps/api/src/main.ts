@@ -44,7 +44,7 @@ async function bootstrap() {
   });
 
   app.useLogger(new PinoLogger());
-  app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(helmet());
   app.setGlobalPrefix('v1');
 
   const configService = app.get(ConfigService);
