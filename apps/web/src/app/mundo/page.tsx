@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import type { Floor } from '@mundo/shared';
+import { WorldCanvas } from '../../components/world-canvas';
 import { api } from '../../lib/api';
 
 const fallbackFloors: Floor[] = [
@@ -62,34 +63,8 @@ export default function MundoPage() {
         </div>
       </aside>
 
-      <section className="world-canvas" aria-label="Cenário 3D">
-        <div className="scene-grid">
-          <div className="scene-card scene-main">
-            <span className="scene-badge">Sala atual</span>
-            <h2>DevOps</h2>
-            <p>CI/CD, Docker, Git, Kubernetes e observabilidade em um prédio isométrico.</p>
-          </div>
-
-          <div className="scene-card room-tile tile-green">
-            <span>Git</span>
-            <strong>Fundamentos</strong>
-          </div>
-
-          <div className="scene-card room-tile tile-violet">
-            <span>CI/CD</span>
-            <strong>Automação</strong>
-          </div>
-
-          <div className="scene-card room-tile tile-blue">
-            <span>Docker</span>
-            <strong>Containers</strong>
-          </div>
-
-          <div className="scene-card room-tile tile-gold">
-            <span>Observabilidade</span>
-            <strong>Monitoramento</strong>
-          </div>
-        </div>
+      <section className="world-canvas" aria-label="Cenário 3D do mundo">
+        <WorldCanvas />
       </section>
     </main>
   );
