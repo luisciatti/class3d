@@ -1,0 +1,34 @@
+slug: ci-cd
+floorSlug: devops
+title: CI/CD
+description: Automatize build, teste e deploy com pipelines.
+position: { x: 4, z: -2 }
+floorColor: '#1fa88a'
+prerequisites: [git]
+lessons:
+  - slug: lesson-01-o-que-e-ci-cd
+    title: O que é CI/CD?
+    order: 1
+    estimatedMinutes: 8
+    xp: 25
+    content: |
+      CI valida mudanças automaticamente. CD entrega essas mudanças em ambiente seguro e repetível.
+  - slug: lesson-02-github-actions-basico
+    title: GitHub Actions básico
+    order: 2
+    estimatedMinutes: 12
+    xp: 35
+    content: |
+      Workflows descrevem etapas como instalação, teste, build e deploy em resposta a eventos do repositório.
+quiz:
+  slug: quiz-ci-cd
+  title: Quiz de CI/CD
+  questions:
+    - prompt: Qual etapa é típica de CI?
+      options:
+        - Build e testes automáticos
+        - Reescrever a documentação manual
+        - Excluir branches antigas
+      correctIndex: 0
+      explanation: CI valida automaticamente a qualidade do código antes do merge ou do deploy.
+      xp: 10

@@ -17,6 +17,8 @@
     "db:generate": "pnpm --filter @mundo/api db:generate",
     "db:migrate": "pnpm --filter @mundo/api db:migrate",
     "db:seed": "pnpm --filter @mundo/api db:seed",
+    "content:validate": "pnpm --filter @mundo/api exec tsx scripts/content/validate.ts",
+    "content:sync": "pnpm --filter @mundo/api exec tsx scripts/content/sync.ts",
     "deps:up": "docker compose -f infra/compose/docker-compose.deps.yml up -d",
     "deps:down": "docker compose -f infra/compose/docker-compose.deps.yml down",
     "docker:up": "docker compose -f infra/compose/docker-compose.yml up --build",
