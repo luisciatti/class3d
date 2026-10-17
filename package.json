@@ -32,10 +32,10 @@
     "globals": "^16.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.0.0",
-    "prettier": "^3.6.0",
-    "turbo": "^2.5.0",
+    "prettier": "^3.9.10",
+    "turbo": "^2.11.8",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.46.0"
+    "typescript-eslint": "^8.71.2"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}": "prettier --write"
