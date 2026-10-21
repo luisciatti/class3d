@@ -14,6 +14,8 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "prepare": "husky",
+    "setup:dev": "node scripts/setup-dev.mjs",
+    "check:dev": "node scripts/check-dev.mjs",
     "db:generate": "pnpm --filter @mundo/api db:generate",
     "db:migrate": "pnpm --filter @mundo/api db:migrate",
     "db:seed": "pnpm --filter @mundo/api db:seed",

@@ -140,18 +140,6 @@ export default function MundoPage() {
     queryFn: api.getHealth,
   });
 
-  const floorsQuery = useQuery({
-    queryKey: ['floors'],
-    queryFn: api.getFloors,
-  });
-
-  const progressSummaryQuery = useQuery({
-    queryKey: ['me-progress'],
-    queryFn: api.getMyProgress,
-    retry: false,
-    staleTime: 5_000,
-  });
-
   const [activeRoomSlug, setActiveRoomSlug] = useState<string | null>(null);
   const [activeFloorSlug, setActiveFloorSlug] = useState<string>(
     fallbackFloors[0]?.slug ?? 'devops',
@@ -159,6 +147,8 @@ export default function MundoPage() {
   const [selectedLessonSlug, setSelectedLessonSlug] = useState<string | null>(null);
   const [progressByLesson, setProgressByLesson] = useState<Record<string, LessonStatus>>({});
   const [isListMode, setIsListMode] = useState<boolean>(() => !supportsWebGL());
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isRoomPanelOpen, setIsRoomPanelOpen] = useState(false);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
   const unlockedAchievementIdsRef = useRef<Set<string>>(new Set());
   const hasInitializedAchievementsRef = useRef(false);
@@ -167,20 +157,6 @@ export default function MundoPage() {
     if (!supportsWebGL()) {
       setIsListMode(true);
     }
-  }, []);
-
-  useEffect(() => {
-    const handleRoomEnter = (event: Event) => {
-      const detail = (event as CustomEvent<{ roomSlug?: string }>).detail;
-      if (!detail?.roomSlug) {
-        return;
-      }
-
-      setActiveRoomSlug(detail.roomSlug);
-    };
-
-    window.addEventListener('room:enter', handleRoomEnter);
-    return () => window.removeEventListener('room:enter', handleRoomEnter);
   }, []);
 
   const roomLessonsQuery = useQuery({
@@ -247,9 +223,10 @@ export default function MundoPage() {
     return Math.round((completed / lessons.length) * 100);
   }, [lessons, progressByLesson]);
 
+  const isDemoMode = !healthQuery.isSuccess;
   const healthStatus = healthQuery.isSuccess
     ? `${healthQuery.data.service} · ${healthQuery.data.status}`
-    : 'API indisponível';
+    : 'Modo demo · API indisponível';
 
   const localProgress = useMemo(() => {
     const completedLessons = lessons.filter(
@@ -285,8 +262,8 @@ export default function MundoPage() {
     };
   }, [lessons, progressByLesson]);
 
-  const mergedProgress = useMemo(() => {
-    const fallback: ProgressSummary = {
+  const mergedProgress = useMemo<ProgressSummary>(
+    () => ({
       userId: 'local-player',
       totalLessons: localProgress.totalLessons,
       completedLessons: localProgress.completedLessons,
@@ -300,33 +277,9 @@ export default function MundoPage() {
         unlockedAt: new Date().toISOString(),
       })),
       lessons: [],
-    };
-
-    const apiProgress = progressSummaryQuery.data;
-    if (!apiProgress) {
-      return fallback;
-    }
-
-    const mergedAchievements = [...apiProgress.achievements, ...fallback.achievements].reduce<
-      Array<ProgressSummary['achievements'][number]>
-    >((items, achievement) => {
-      const key = achievement.slug;
-      if (!items.some((item) => item.slug === key)) {
-        items.push(achievement);
-      }
-      return items;
-    }, []);
-
-    return {
-      ...fallback,
-      ...apiProgress,
-      xpEarned: Math.max(localProgress.xpEarned, apiProgress.xpEarned ?? 0),
-      level: Math.max(localProgress.level, apiProgress.level ?? 1),
-      achievements: mergedAchievements,
-      totalLessons: Math.max(apiProgress.totalLessons ?? 0, localProgress.totalLessons),
-      completedLessons: Math.max(apiProgress.completedLessons ?? 0, localProgress.completedLessons),
-    };
-  }, [localProgress, progressSummaryQuery.data]);
+    }),
+    [localProgress],
+  );
 
   const xpProgress = mergedProgress.xpEarned % 100;
   const xpProgressPercent = Math.min(100, xpProgress);
@@ -367,7 +320,7 @@ export default function MundoPage() {
     return () => window.clearTimeout(timeoutId);
   }, [mergedProgress.achievements]);
 
-  const floors = floorsQuery.data ?? fallbackFloors;
+  const floors = fallbackFloors;
   const unlockedFloorSlugs = useMemo(() => new Set<string>(['devops']), []);
   const roomOptions = useMemo(
     () =>
@@ -417,6 +370,7 @@ export default function MundoPage() {
     }
 
     setActiveRoomSlug(nextRoomSlug);
+    setIsRoomPanelOpen(true);
     setSelectedLessonSlug(null);
   };
 
@@ -449,11 +403,28 @@ export default function MundoPage() {
 
   return (
     <main className="world-shell">
-      <aside className="world-sidebar">
-        <p className="eyebrow">Mundo 3D</p>
-        <h1>Prédio de aprendizado</h1>
+      <aside className={`world-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-title-wrap">
+            <p className="eyebrow">Mundo 3D</p>
+            <h1>Prédio de aprendizado</h1>
+          </div>
+          <button
+            type="button"
+            className="collapse-toggle"
+            aria-label={isSidebarCollapsed ? 'Expandir painel lateral' : 'Colapsar painel lateral'}
+            onClick={() => setIsSidebarCollapsed((value) => !value)}
+          >
+            {isSidebarCollapsed ? '→' : '←'}
+          </button>
+        </div>
 
-        <div className="status-card" aria-live="polite">
+        <div
+          className="status-card"
+          aria-live="polite"
+          data-mode={isDemoMode ? 'demo' : 'live'}
+          title={isDemoMode ? 'Modo demo com dados locais' : 'API online'}
+        >
           <span className={`status-dot ${healthQuery.isSuccess ? 'online' : 'offline'}`} />
           <span>{healthStatus}</span>
         </div>
@@ -679,15 +650,31 @@ export default function MundoPage() {
         </section>
       ) : (
         <section className="world-canvas" aria-label="Cenário 3D do mundo">
-          <WorldCanvas floorSlug={activeFloorSlug} roomStates={worldRoomStates} />
+          <WorldCanvas
+            floorSlug={activeFloorSlug}
+            roomStates={worldRoomStates}
+            onRoomEnter={(roomSlug) => {
+              setActiveRoomSlug(roomSlug);
+              setIsRoomPanelOpen(true);
+            }}
+          />
 
-          <aside className="lesson-panel" aria-live="polite">
+          <aside className={`lesson-panel ${isRoomPanelOpen ? 'open' : ''}`} aria-live="polite">
             {!activeRoomSlug || !room ? (
               <div className="empty-state">
+                <button
+                  type="button"
+                  className="panel-close"
+                  onClick={() => setIsRoomPanelOpen(false)}
+                  aria-label="Fechar dica de sala"
+                >
+                  ×
+                </button>
                 <p className="eyebrow">Sala</p>
-                <h2>Entre em uma sala</h2>
+                <h2>Clique numa sala</h2>
                 <p>
-                  Ao atravessar a porta de um ambiente, o painel abre automaticamente com as aulas.
+                  Caminhe até a porta de um ambiente ou toque numa sala para abrir o painel de
+                  aulas.
                 </p>
               </div>
             ) : (
@@ -697,10 +684,19 @@ export default function MundoPage() {
                     <p className="eyebrow">Sala atual</p>
                     <h2>{room.title}</h2>
                   </div>
-                  <span className={`status-badge ${room.unlocked ? 'ready' : 'locked'}`}>
-                    {room.unlocked ? 'Aberta' : 'Bloqueada'}
-                  </span>
+                  <button
+                    type="button"
+                    className="panel-close"
+                    onClick={() => setIsRoomPanelOpen(false)}
+                    aria-label="Fechar painel da sala"
+                  >
+                    ×
+                  </button>
                 </div>
+
+                <span className={`status-badge ${room.unlocked ? 'ready' : 'locked'}`}>
+                  {room.unlocked ? 'Aberta' : 'Bloqueada'}
+                </span>
 
                 {room.lockedReason ? (
                   <p className="room-lock-note">Motivo: {room.lockedReason}</p>

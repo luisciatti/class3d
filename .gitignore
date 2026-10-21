@@ -6,6 +6,10 @@ coverage
 .env
 .env.example
 .env.local
+apps/api/.env
+apps/api/.env.local
+apps/web/.env
+apps/web/.env.local
 *.log
 .DS_Store
 .vscode/*

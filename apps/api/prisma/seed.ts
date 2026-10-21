@@ -1,9 +1,26 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { config } from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { buildSeedData } from '../src/prisma/seed';
 
+config({
+  path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../.env'),
+});
+
 const prisma = new PrismaClient();
 
-const lessonsByRoom = {
+const lessonsByRoom: Record<
+  string,
+  Array<{
+    slug: string;
+    title: string;
+    order: number;
+    estimatedMinutes: number;
+    xp: number;
+    content: string;
+  }>
+> = {
   git: [
     {
       slug: 'git-01-visao-geral',
@@ -58,7 +75,43 @@ const lessonsByRoom = {
       content: '# Volumes\n\nPersistência e evolução do ambiente.',
     },
   ],
-} as const;
+  kubernetes: [
+    {
+      slug: 'kubernetes-01-orquestracao',
+      title: 'Orquestração básica',
+      order: 1,
+      estimatedMinutes: 11,
+      xp: 45,
+      content: '# Kubernetes\n\nOrquestre contêineres com deploys previsíveis.',
+    },
+    {
+      slug: 'kubernetes-02-escala-e-recursos',
+      title: 'Escala e recursos',
+      order: 2,
+      estimatedMinutes: 12,
+      xp: 50,
+      content: '# Escala\n\nAjuste réplicas, limites e disponibilidade.',
+    },
+  ],
+  observabilidade: [
+    {
+      slug: 'observabilidade-01-metricas',
+      title: 'Métricas e alertas',
+      order: 1,
+      estimatedMinutes: 10,
+      xp: 45,
+      content: '# Observabilidade\n\nEntenda métricas e sinais de saúde.',
+    },
+    {
+      slug: 'observabilidade-02-tracing',
+      title: 'Tracing e diagnósticos',
+      order: 2,
+      estimatedMinutes: 12,
+      xp: 55,
+      content: '# Tracing\n\nDiagnostique falhas e gargalos de forma prática.',
+    },
+  ],
+};
 
 async function main() {
   const { floor, rooms } = buildSeedData();
@@ -104,7 +157,7 @@ async function main() {
       },
     });
 
-    const lessons = lessonsByRoom[room.slug as keyof typeof lessonsByRoom];
+    const lessons = lessonsByRoom[room.slug] ?? [];
 
     for (const lesson of lessons) {
       await prisma.lesson.upsert({

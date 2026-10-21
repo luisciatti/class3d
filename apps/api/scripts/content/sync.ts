@@ -1,8 +1,14 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { config } from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { parse } from 'yaml';
 import { ContentDocumentSchema, type RoomContent } from '@mundo/shared';
+
+config({
+  path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.env'),
+});
 
 const prisma = new PrismaClient();
 const contentRoot = path.resolve(__dirname, '../../../../content');
